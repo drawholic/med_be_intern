@@ -2,6 +2,6 @@ version: "3.9"
 
 services:
   back:
-    build: /back
+    build: ./back
     ports:
-      - '8080:5000'
+      - 8000:8000
