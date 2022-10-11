@@ -1,13 +1,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
+import databases
 
+DB_URL = 'postgresql://drawholic:chickenbox8@localhost:5432/postgres'
 
-DB_URL = 'postgresql://postgres:postgres@/be-int/postgres'
+database = databases.Database(DB_URL)
 
-engine = sqlalchemy.create_engine(DB_URL)
-
+engine = create_engine(DB_URL)
 Base = declarative_base()
 
-
-
-Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(engine)
