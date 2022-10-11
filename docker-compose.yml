@@ -5,6 +5,24 @@ services:
     build: ./back
     ports:
       - "8000:8000"
-  postgres:
+    restart: always
+  
+    depends_on:
+      - db
+
+  cache:
+    image: redis
+    restart: always
+    ports:
+      - "6378:6378"
+
+  db:
+    image: postgres
+    expose:
+      - 5432
     ports:
       - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
