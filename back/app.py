@@ -19,11 +19,14 @@ app.add_middleware(
 @app.on_event('startup')
 async def startup():
     await database.connect()
-
+    redis = await aioredis.from_url('redis://localhost')
+    # some actions with redis in future    
+    await redis.close()
 
 @app.on_event('shutdown')
 async def shutdown():
     await database.disconnect()
+    
 
 
 @app.get('/')
