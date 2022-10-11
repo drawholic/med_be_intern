@@ -4,5 +4,5 @@ services:
   back:
     build: ./back
     ports:
-      - 8000:8000
+      - "8000:8000"
 
