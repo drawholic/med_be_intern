@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 import databases
 
-DB_URL = 'postgresql://postgres:postgres@localhost:5432/postgres'
+DB_URL = 'postgresql://postgres:postgres@db:5432/postgres'
 
 database = databases.Database(DB_URL)
 
