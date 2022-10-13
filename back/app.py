@@ -4,7 +4,6 @@ from db.db import database, engine, Base
 import aioredis
 from users.main import users
 
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
