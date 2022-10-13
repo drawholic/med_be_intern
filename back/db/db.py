@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 import databases
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv('../env')
 
 DB_USER=os.getenv('PG_USER')
 DB_PASS=os.getenv('PG_PASS')
