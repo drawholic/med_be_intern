@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from db.db import database, engine, Base
 import aioredis
 from users.main import users
-
+from log import logger
 
 app = FastAPI()
 
@@ -19,9 +19,13 @@ app.include_router(users)
 
 @app.on_event('startup')
 async def startup():
+    
+    logger.info('SERVER STARTED')
     await database.connect()
     redis = await aioredis.from_url('redis://localhost')
+    
     # some actions with redis in future    
+    
     await redis.close()
 
 @app.on_event('shutdown')

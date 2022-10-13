@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends
 from db.db import get_db
-from crud import get_users, get_user
-from pd_models import User, UserList
+from .crud import get_users, get_user
+from .pd_models import User, UserList
 
 users = APIRouter(prefix='/users')
 
 
-@user.get('/', response_model=UserList)
+@users.get('/', response_model=UserList)
 async def list_users(db = Depends(get_db)):
     try:
         return get_users(db)
@@ -16,7 +16,7 @@ async def list_users(db = Depends(get_db)):
         
 
 
-@user.get('/{user_id}', response_model=User)
+@users.get('/{user_id}', response_model=User)
 async def retrieve_user(user_id: int, db = Depends(get_db)):
     try:
         return get_user(user_id, db)

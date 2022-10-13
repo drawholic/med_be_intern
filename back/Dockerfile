@@ -1,5 +1,7 @@
 FROM python:3.10.6
 
+VOLUME ["/core"]
+
 WORKDIR /core
 
 ENV PYTHONDONTWRITEBYTECODE 1
