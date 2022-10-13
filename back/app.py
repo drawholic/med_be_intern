@@ -23,7 +23,6 @@ async def startup():
     logger.info('SERVER STARTED')
     await database.connect()
     redis = await aioredis.from_url('redis://localhost')
-    
     # some actions with redis in future    
     
     await redis.close()

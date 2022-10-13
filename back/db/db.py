@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+
 import databases
 from dotenv import load_dotenv
 import os
@@ -21,7 +21,6 @@ engine = create_engine(DB_URL, echo=True)
 
 ss = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-Base = declarative_base()
 
 
 def get_db():
