@@ -2,12 +2,17 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import databases
+from dotenv import load_dotenv
 
-<<<<<<< HEAD
-DB_URL = 'postgresql://postgres:postgres@db:5432/postgres'
-=======
-DB_URL = 'postgresql://postgres:postgres@localhost:5432/postgres'
->>>>>>> 13736ac1e8f9f4ce78e4c570d92b5cb1dde702a1
+load_dotenv()
+
+DB_USER=os.getenv('PG_USER')
+DB_PASS=os.getenv('PG_PASS')
+DB_DB=os.getenv('PG_DB')
+
+
+DB_URL = f`postgresql://${DB_USER}:${DB_PASS}@db:5432/${DB_DB}`
+   
 
 database = databases.Database(DB_URL)
 
