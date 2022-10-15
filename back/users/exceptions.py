@@ -1,0 +1,7 @@
+
+
+
+class PasswordMismatchException(Exception):
+    pass
+
+

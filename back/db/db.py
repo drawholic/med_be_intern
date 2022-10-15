@@ -11,7 +11,6 @@ DB_USER=os.getenv('PG_USER')
 DB_PASS=os.getenv('PG_PASS')
 DB_DB=os.getenv('PG_DB')
 
-
 DB_URL = f'postgresql://{DB_USER}:{DB_PASS}@db:5432/{DB_DB}'
    
 
