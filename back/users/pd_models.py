@@ -4,7 +4,7 @@ from pydantic import BaseModel, EmailStr
 
 class UserBase(BaseModel):
     username: str
-    
+    email: EmailStr    
 
 
 class UserUpgrade(UserBase):
@@ -21,12 +21,12 @@ class UserSignInToken(BaseModel):
 
 class UserSignUp(UserUpgrade):
     password_confirm: str
-    email: EmailStr
+    pass
 
 
 class User(UserBase):
     id: int
-
+    
     class Config:
         orm_mode = True
 
