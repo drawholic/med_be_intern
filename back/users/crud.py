@@ -1,24 +1,8 @@
 from db.models import User
-from .exceptions import PasswordMismatchException, UserDoesNotExist
+from .exceptions import PasswordMismatchException, UserDoesNotExist, UserAlreadyExists
 
 def user_query(uid, db):
     return db.query(User).filter(User.id==uid)
-
-
-def create_user(user, db):
-    password1 = user.password
-    password2 = user.password_confirm
-    username = user.username
-    email = user.email
-    if password1 == password2:
-        password = str(hash(password1))
-        user_db = User(username=username, password=password, email=email)
-        db.add(user_db)
-        db.commit()
-        db.refresh(user_db)
-        return user_db
-    else: 
-        raise PasswordMismatchException
 
 
 def check_user(uid, db):
@@ -29,19 +13,39 @@ def check_user(uid, db):
         raise UserDoesNotExist
 
 
+def create_user(user, db):
+    if db.query(User).filter(User.username==user.username).first():
+        raise UserAlreadyExists
+    else:
+        password1 = user.password
+        password2 = user.password_confirm
+        username = user.username
+        email = user.email
+        if password1 == password2:
+            password = str(hash(password1))
+            user_db = User(username=username, password=password, email=email)
+            db.add(user_db)
+            db.commit()
+            db.refresh(user_db)
+            return user_db
+        else: 
+            raise PasswordMismatchException
+
+
 def update_user(uid, user_data, db):
     if check_user(uid, db):
         user = user_query(uid, db)
         user.update(user_data.dict())
         db.commit()
-        #db.refresh(user.first())
         return user.first()
     else:
         raise UserDoesNotExist
 
 
-def delete_user():
-    pass
+def delete_user(uid, db):
+    user = user_query(uid, db).first()
+    db.delete(user)
+
 
 
 def get_user(user_id, db):
@@ -53,6 +57,8 @@ def get_user(user_id, db):
         raise UserDoesNotExist
 
 
-def get_users( db):
-    users = db.query(User)
+def get_users(skip, limit, db):
+    users = db.query(User).limit(skip+limit).offset(skip)
     return users.all()
+
+

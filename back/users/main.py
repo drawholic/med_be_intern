@@ -10,9 +10,9 @@ users = APIRouter(prefix='/users')
 @users.get('/',
         response_model=list[User]
         )
-async def list_users(db = Depends(get_db)):
+async def list_users(skip:int = 0, limit:int = 10, db = Depends(get_db)):
     try:
-        return get_users(db)
+        return get_users(skip, limit, db)
     except Exception as e:
         return HTTPException(status_code=400) 
 
@@ -37,7 +37,8 @@ async def sign_up(user: UserSignUp, db=Depends(get_db)):
         return create_user(user, db)
     except PasswordMismatchException:
         raise HTTPException(status=400, detail='Passwords do not match')
-
+    except UserAlreadyExists:
+        raise HTTPException(status=400, detail='Username is already taken')
 
 @users.put('/{user_id}', )
 async def edit_user(user_id: int, user_upd: UserUpgrade, db = Depends(get_db)):
