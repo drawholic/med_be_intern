@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from db.db import get_db
-from .crud import get_users, get_user, create_user, update_user
+from .crud import get_users, get_user, create_user, update_user, delete_crud
 from .pd_models import User, UserList, UserSignUp, UserUpgrade
 from .exceptions import PasswordMismatchException, UserDoesNotExist
 
@@ -18,7 +18,7 @@ async def list_users(skip:int = 0, limit:int = 10, db = Depends(get_db)):
 
 
 @users.get('/{user_id}', 
-        #response_model=User
+        response_model=User
         )
 async def retrieve_user(user_id: int, db = Depends(get_db)):
     try:
@@ -40,7 +40,7 @@ async def sign_up(user: UserSignUp, db=Depends(get_db)):
     except UserAlreadyExists:
         raise HTTPException(status=400, detail='Username is already taken')
 
-@users.put('/{user_id}', )
+@users.put('/{user_id}', response_model=User)
 async def edit_user(user_id: int, user_upd: UserUpgrade, db = Depends(get_db)):
     try:
         user = update_user(user_id, user_upd, db)
@@ -49,7 +49,13 @@ async def edit_user(user_id: int, user_upd: UserUpgrade, db = Depends(get_db)):
         return HTTPException(status_code=400, detail='User does not exist')
 
 
-
-
+@users.delete('/{user_id}', response_model=User)
+async def delete_user(user_id:int, db = Depends(get_db)):
+    try:
+        user = delete_crud(user_id, db)
+        return user
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=400)
 
 
