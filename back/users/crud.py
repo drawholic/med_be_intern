@@ -1,7 +1,7 @@
 from db.models import User
 from .exceptions import PasswordMismatchException, UserDoesNotExist, UserAlreadyExists
 from log import logger
-
+from sqlalchemy.orm import Session
 
 
 def user_query(uid, db):
@@ -20,8 +20,8 @@ def create_user(user, db):
     if db.query(User).filter(User.username==user.username).first():
         raise UserAlreadyExists
     else:
-        password1 = user.password
-        password2 = user.password_confirm
+        password1 = user.password1
+        password2 = user.password2
         username = user.username
         email = user.email
         if password1 == password2:
@@ -36,10 +36,15 @@ def create_user(user, db):
             raise PasswordMismatchException
 
 
-def update_user(uid, user_data, db):
+def update_user(uid: int, user_data, db):
+
     if check_user(uid, db):
         user = user_query(uid, db)
-        user.update(user_data.dict())
+        user_data = user_data.dict(exclude_unset=True)
+        user_data['password'] = user_data['password1']
+        del user_data['password1']
+        del user_data['password2']
+        user.update(user_data)
         user = user.first()
         db.commit()
         logger.info(f'user {user.username} updated')
@@ -48,7 +53,7 @@ def update_user(uid, user_data, db):
         raise UserDoesNotExist
 
 
-def delete_crud(uid, db):
+def delete_crud(uid: int, db: Session):
     user = user_query(uid, db).first()
     db.delete(user)
     db.commit()
@@ -57,16 +62,18 @@ def delete_crud(uid, db):
 
 
 
-def get_user(user_id, db):
+def get_user(uid: int, db: Session):
     
-    user = db.query(User).filter(User.id==user_id).first()
+    user = user_query.first()
+    
     if user is not None:
         return user
+    
     else:
         raise UserDoesNotExist
 
 
-def get_users(skip, limit, db):
+def get_users(skip: int, limit: int, db: Session):
     users = db.query(User).limit(skip+limit).offset(skip)
     logger.info('users were listed')
     return users.all()
