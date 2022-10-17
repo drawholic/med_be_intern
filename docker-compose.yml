@@ -1,10 +1,37 @@
 version: "3.9"
 
 services:
+  
+  cache:
+    image: redis
+    restart: always
+    ports:
+      - "6378:6378"
+
+  db:
+    image: postgres
+    restart: always
+    volumes:
+      - ./database-/var/lib/postgresql/data
+    expose:
+      - 5432
+    ports:
+      - "5432:5432"
+    env_file:
+      - back/.env
+    environment:
+      - POSTGRES_USER=${PG_USER}
+      - POSTGRES_PASSWORD=${PG_PASS}
+      - POSTGRES_DB=${PG_DB}
+
   back:
     build: ./back
     ports:
       - "8000:8000"
-  postgres:
-    ports:
-      - "5432:5432"
+    restart: always
+    volumes:
+      - ./back:/core
+    depends_on:
+      - db
+      - cache
+              
