@@ -14,14 +14,14 @@ users = APIRouter(prefix='/users')
 token_auth = HTTPBearer()
 
 @users.get('/private')
-async def private(response: Response, token:str = Depends(token_auth)):
-    result = VerifyToken(token.credentials).verify()
+async def private( token:str = Depends(token_auth)):
+    #result = VerifyToken(token.credentials).verify()
 
-    if result.get("status"):
-        response.status_code = status.HTTP_400_BAD_REQUEST
-        return result
+    #if result.get("status"):
+#        response.status_code = status.HTTP_400_BAD_REQUEST
+ #       return result
 
-    return result
+    return token.credentials
 
 @users.get('/',response_model=list[User])
 async def list_users(skip:int = 0, limit:int = 10, db = Depends(get_db)):
@@ -73,9 +73,11 @@ async def edit_user(uid: int, user_upd: UserUpgrade, db = Depends(get_db)):
 
 @users.delete('/{user_id}', response_model=User)
 async def delete_user(user_id:int, db = Depends(get_db)):
+    
     try:
         user = delete_crud(user_id, db)
         return user
+    
     except Exception as e:
         logger.debug(e) 
         raise HTTPException(status_code=400)
