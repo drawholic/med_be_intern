@@ -27,10 +27,8 @@ class VerifyToken():
                 self.token
             ).key
         except jwt.exceptions.PyJWKClientError as error:
-            print(error)
             return {"status": "error", "msg": error.__str__()}
         except jwt.exceptions.DecodeError as error:
-            print('decodeerror')
             return {"status": "error", "msg": error.__str__()}
 
         try:
@@ -42,7 +40,6 @@ class VerifyToken():
                 issuer=self.config["ISSUER"],
             )
         except Exception as e:
-            print('exception')
             return {"status": "error", "message": str(e)}
 
         return payload

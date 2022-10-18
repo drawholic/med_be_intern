@@ -30,14 +30,21 @@ class UserSignInToken(BaseModel):
 
 
 class UserSignUp(UserBase):
-    password_confirm: str
-    password: str
+    password1: str
+    password2: str
     
+    @validator('password2')
+    def passwords_match(cls, v, values):
+        if 'password1' in values and v != values['password1']:
+            raise HTTPException(status_code=400, detail='passwords dont match')
+        return v
+
+
 
 
 class User(UserBase):
     id: int
-    username: str
+    username: str | None
 
     class Config:
         orm_mode = True

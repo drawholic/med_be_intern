@@ -2,7 +2,7 @@ from db.models import User
 from .exceptions import PasswordMismatchException, UserDoesNotExist, UserAlreadyExists
 from log import logger
 from sqlalchemy.orm import Session
-
+from .exceptions import UserAlreadyExists
 
 def user_query(uid, db):
     return db.query(User).filter(User.id==uid)
@@ -17,20 +17,19 @@ def check_user(uid, db):
 
 
 def create_user(user, db):
-    if db.query(User).filter(User.username==user.username).first():
+    if db.query(User).filter(User.email==user.email).first():
         raise UserAlreadyExists
     else:
         password1 = user.password1
         password2 = user.password2
-        username = user.username
         email = user.email
         if password1 == password2:
             password = str(hash(password1))
-            user_db = User(username=username, password=password, email=email)
+            user_db = User(password=password, email=email)
             db.add(user_db)
             db.commit()
             db.refresh(user_db)
-            logger.info(f'user {username} is created')
+            logger.info(f'user {email} is created')
             return user_db
         else: 
             raise PasswordMismatchException
@@ -77,5 +76,20 @@ def get_users(skip: int, limit: int, db: Session):
     users = db.query(User).limit(skip+limit).offset(skip)
     logger.info('users were listed')
     return users.all()
+
+
+
+def auth_user(uid:int, u, db):
+    db_user = user_query(uid, db).first()
+    user_pass = str(hash(u['password']))
+    if db_user['password'] == user_pass and db_user['email'] == u['email']:
+        return db_user
+        
+
+
+
+
+
+
 
 

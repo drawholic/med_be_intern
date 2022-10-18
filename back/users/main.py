@@ -3,9 +3,9 @@ from fastapi.security import HTTPBearer
 
 from db.db import get_db
 
-from .crud import get_users, get_user, create_user, update_user, delete_crud
-from .pd_models import User, UserList, UserSignUp, UserUpgrade
-from .exceptions import PasswordMismatchException, UserDoesNotExist
+from .crud import get_users, get_user, create_user, update_user, delete_crud, auth_user
+from .pd_models import User, UserList, UserSignUp, UserUpgrade, UserSignInPass
+from .exceptions import PasswordMismatchException, UserDoesNotExist, UserAlreadyExists
 from .auth import VerifyToken
 
 users = APIRouter(prefix='/users')
@@ -13,15 +13,27 @@ users = APIRouter(prefix='/users')
 
 token_auth = HTTPBearer()
 
-@users.get('/private')
-async def private( token:str = Depends(token_auth)):
-    #result = VerifyToken(token.credentials).verify()
 
-    #if result.get("status"):
-#        response.status_code = status.HTTP_400_BAD_REQUEST
- #       return result
+@users.post('/auth')
+async def auth_route(user_auth: UserSignInPass, db = Depends(get_db)):
+    user = auth_user(user_auth, db)
+    if user is not None:
+        return user
+    else:
+        raise HTTPException(status=400, detail='error')
+
+
+@users.get('/private')
+async def private(response: Response, token:str = Depends(token_auth)):
+    print('token', token) 
+    result = VerifyToken(token.credentials).verify()
+    print('payload from verify: ', result)
+    if result.get("status"):
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return result
 
     return token.credentials
+
 
 @users.get('/',response_model=list[User])
 async def list_users(skip:int = 0, limit:int = 10, db = Depends(get_db)):
@@ -36,39 +48,23 @@ async def list_users(skip:int = 0, limit:int = 10, db = Depends(get_db)):
 @users.get('/{user_id}', response_model=User)
 async def retrieve_user(user_id: int, db = Depends(get_db)):
     
-    try:
-        return get_user(user_id, db)
+    return get_user(user_id, db)
     
-    except UserDoesNotExist:
-        raise HTTPException(status_code=404, detail='User is not found')
 
 
 @users.post('/', response_model=User)
 async def sign_up(user: UserSignUp, db=Depends(get_db)):
     
-    try:
-        return create_user(user, db)
+    return create_user(user, db)
     
-    except PasswordMismatchException:
-        raise HTTPException(status=400, detail='Passwords do not match')
-    
-    except UserAlreadyExists:
-        raise HTTPException(status=400, detail='Username is already taken')
 
 
 @users.patch('/{uid}', response_model=User)
 async def edit_user(uid: int, user_upd: UserUpgrade, db = Depends(get_db)):
-    
 
-    try:
-        user = update_user(uid, user_upd, db)
-        return user
+    user = update_user(uid, user_upd, db)
+    return user
         
-    except UserDoesNotExist:
-        raise HTTPException(status_code=400, detail='User does not exist')
-    
-    except PasswordMismatchException:
-        raise HTTPException(status_code=400, detail='Passwords do not match')
 
 
 @users.delete('/{user_id}', response_model=User)
