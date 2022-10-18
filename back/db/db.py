@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine  
 from sqlalchemy.orm import sessionmaker
 
 import databases
@@ -28,4 +28,4 @@ def get_db():
     try:
         yield s
     finally:
-        s.close()
+        s.close() 

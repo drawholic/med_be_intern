@@ -1,9 +1,9 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware 
 from db.db import database, engine, Base
 import aioredis
 from users.main import users
-from log import logger
+from log import logger 
 
 app = FastAPI()
 
@@ -14,7 +14,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=['*'],
     allow_headers=['*']
-)
+) 
 app.include_router(users)
 
 @app.on_event('startup')
@@ -24,12 +24,12 @@ async def startup():
     await database.connect()
     redis = await aioredis.from_url('redis://localhost')
     # some actions with redis in future    
-    
+     
     await redis.close()
 
 @app.on_event('shutdown')
-async def shutdown():
-    logger.info('server is stopping, connection to db is closing...')
+async def shutdown(): 
+    logger.info('server is stopping, connection to db is closing...') 
     await database.disconnect()
     
 

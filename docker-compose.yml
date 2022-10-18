@@ -12,9 +12,7 @@ services:
     image: postgres
     restart: always
     volumes:
-      - ./database-/var/lib/postgresql/data
-    expose:
-      - 5432
+      - ./database-/var/lib/postgresql/data 
     ports:
       - "5432:5432"
     env_file:
@@ -28,10 +26,9 @@ services:
     build: ./back
     ports:
       - "8000:8000"
-    restart: always
+    restart: always 
     volumes:
       - ./back:/core
     depends_on:
       - db
       - cache
-              
