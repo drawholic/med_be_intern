@@ -10,7 +10,7 @@ load_dotenv('.env')
 DB_USER=os.getenv('PG_USER')
 DB_PASS=os.getenv('PG_PASS')
 DB_DB=os.getenv('PG_DB')
-DB_PORT=os.getenv('PH_PORT')
+DB_PORT=os.getenv('PG_PORT')
 DB_HOST=os.getenv('PG_HOST')
 
 
