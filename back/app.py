@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware 
-from db.db import database, engine, Base
+from db.db import database, engine
+from db.models import Base
 import aioredis
 from users.main import users
 from log import logger 
