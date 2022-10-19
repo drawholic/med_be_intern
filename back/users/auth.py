@@ -2,14 +2,32 @@ import os
 from dotenv import load_dotenv
 import jwt
 
-def get_env():
+def get_env() -> dict:
     load_dotenv()
     env = {'DOMAIN':os.getenv('DOMAIN'),
             "AUDIENCE":os.getenv('AUDIENCE'),
             'ISSUER':os.getenv('ISSUER'),
-            'ALGORITHMS':os.getenv('ALGORITHMS')
+            'ALGORITHMS':os.getenv('ALGORITHMS'),
+            'SECRET':os.getenv('SECRET')
             }
     return env
+
+
+def token_generate(payload: str) -> str:
+    load_dotenv()
+    secret = os.getenv('SECRET')
+    token = jwt.encode({"payload": payload}, secret, algorithm='HS256')
+    
+    return token
+
+
+def token_decode(payload) -> str:
+    load_dotenv()
+    secret = os.getenv('SECRET')
+    result = jwt.decode(token, secret, algorithms='HS256')
+    
+            
+    return result
 
 
 class VerifyToken():
@@ -43,3 +61,5 @@ class VerifyToken():
             return {"status": "error", "message": str(e)}
 
         return payload
+
+

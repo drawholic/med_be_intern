@@ -3,10 +3,10 @@ from fastapi.security import HTTPBearer
 
 from db.db import get_db
 
-from .crud import get_users, get_user, create_user, update_user, delete_crud, auth_user
+from .crud import get_users,get_user_by_email, get_user, create_user, update_user, delete_crud, auth_user
 from .pd_models import User, UserList, UserSignUp, UserUpgrade, UserSignInPass
 from .exceptions import PasswordMismatchException, UserDoesNotExist, UserAlreadyExists
-from .auth import VerifyToken
+from .auth import VerifyToken, token_generate, token_decode
 
 users = APIRouter(prefix='/users')
 
@@ -17,22 +17,30 @@ token_auth = HTTPBearer()
 @users.post('/auth')
 async def auth_route(user_auth: UserSignInPass, db = Depends(get_db)):
     user = auth_user(user_auth, db)
+    
     if user is not None:
+        
+        token = token_generate(user.email)
+        user.token = token
         return user
     else:
-        raise HTTPException(status=400, detail='error')
+        raise HTTPException(status_code=400, detail='authentication error')
 
 
 @users.get('/private')
-async def private(response: Response, token:str = Depends(token_auth)):
+async def private(response: Response, token: str = Depends(token_auth), db = Depends(get_db)):
+    
     result = VerifyToken(token.credentials).verify()
+    
     if result.get("status"):
         response.status_code = status.HTTP_400_BAD_REQUEST
         return result
-    
-    user = get_user_by_email(result['email'], db)
+    if result.get('email'):
+        user = get_user_by_email(result.get('email'), db) 
+        return user
 
-    return 
+
+    return result
 
 
 @users.get('/',response_model=list[User])

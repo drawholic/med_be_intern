@@ -18,7 +18,7 @@ def check_user_id(uid, db):
     if user:
         return True
     else:
-        raise UserDoesNotExist
+        return False
 
 
 def check_user_mail(mail, db):
@@ -26,7 +26,7 @@ def check_user_mail(mail, db):
     if user:
         return True
     else:
-        raise UserDoesNotExist
+        return False
 
 
 def create_user(user, db):
@@ -101,12 +101,13 @@ def get_users(skip: int, limit: int, db: Session):
 
 
 
-def auth_user(uid:int, u, db):
-    db_user = user_query_id(uid, db).first()
-    user_pass = str(hash(u['password']))
-    if db_user['password'] == user_pass and db_user['email'] == u['email']:
+def auth_user(u, db: Session):
+    db_user = get_user_by_email(u.email, db)
+    user_pass = str(hash(u.password))
+    print('first here')
+    if db_user.password == user_pass and db_user.email == u.email:
         return db_user
-     
+        print('here')     
 
 
 
