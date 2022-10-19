@@ -8,11 +8,11 @@ class UserBase(BaseModel):
 
 
 class UserUpgrade(UserBase):
-    password1: str | None
-    username: str | None
-    email: EmailStr | None
-    password2: str | None 
-    username: str | None
+    password1: str | None = None
+    username: str | None = None
+    email: EmailStr | None = None
+    password2: str | None = None
+    username: str | None = None
 
     @validator('password2')
     def passwords_match(cls, v, values):

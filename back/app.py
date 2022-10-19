@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from db.db import database, engine
 from db.models import Base
 import aioredis
-from users.main import users
+from users.router import users
 from log import logger
 
 Base.metadata.create_all(bind=engine)

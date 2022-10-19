@@ -4,12 +4,25 @@ from log import logger
 from sqlalchemy.orm import Session
 from .exceptions import UserAlreadyExists
 
-def user_query(uid, db):
+
+def user_query_id(uid, db):
     return db.query(User).filter(User.id==uid)
 
 
-def check_user(uid, db):
-    user = db.query(user_query(uid, db).exists()).scalar()
+def user_query_mail(mail, db):
+    return db.query(User).filter(User.email==mail)
+
+
+def check_user_id(uid, db):
+    user = db.query(user_query_id(uid, db).exists()).scalar()
+    if user:
+        return True
+    else:
+        raise UserDoesNotExist
+
+
+def check_user_mail(mail, db):
+    user = db.query(user_query_mail(mail, db).exists()).scalar()
     if user:
         return True
     else:
@@ -17,7 +30,7 @@ def check_user(uid, db):
 
 
 def create_user(user, db):
-    if db.query(User).filter(User.email==user.email).first():
+    if check_user_mail(user.email, db):
         raise UserAlreadyExists
     else:
         password1 = user.password1
@@ -37,12 +50,13 @@ def create_user(user, db):
 
 def update_user(uid: int, user_data, db):
 
-    if check_user(uid, db):
-        user = user_query(uid, db)
+    if check_user_id(uid, db):
+        user = user_query_id(uid, db)
         user_data = user_data.dict(exclude_unset=True)
-        user_data['password'] = user_data['password1']
-        del user_data['password1']
-        del user_data['password2']
+        if 'password1' in user_data.keys():
+            user_data['password'] = user_data['password1']
+            del user_data['password1']
+            del user_data['password2']
         user.update(user_data)
         user = user.first()
         db.commit()
@@ -53,7 +67,7 @@ def update_user(uid: int, user_data, db):
 
 
 def delete_crud(uid: int, db: Session):
-    user = user_query(uid, db).first()
+    user = user_query_id(uid, db).first()
     db.delete(user)
     db.commit()
     logger.info(f'user {user.username} was deleted')
@@ -63,11 +77,19 @@ def delete_crud(uid: int, db: Session):
 
 def get_user(uid: int, db: Session):
     
-    user = user_query.first()
+    user = user_query_id(uid, db).first()
     
     if user is not None:
         return user
     
+    else:
+        raise UserDoesNotExist
+
+def get_user_by_email(mail: str, db: Session):
+    user = user_query_mail(mail, db).first()
+
+    if user is not None:
+        return user
     else:
         raise UserDoesNotExist
 
@@ -80,11 +102,11 @@ def get_users(skip: int, limit: int, db: Session):
 
 
 def auth_user(uid:int, u, db):
-    db_user = user_query(uid, db).first()
+    db_user = user_query_id(uid, db).first()
     user_pass = str(hash(u['password']))
     if db_user['password'] == user_pass and db_user['email'] == u['email']:
         return db_user
-        
+     
 
 
 

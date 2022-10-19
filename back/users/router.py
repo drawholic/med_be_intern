@@ -25,14 +25,14 @@ async def auth_route(user_auth: UserSignInPass, db = Depends(get_db)):
 
 @users.get('/private')
 async def private(response: Response, token:str = Depends(token_auth)):
-    print('token', token) 
     result = VerifyToken(token.credentials).verify()
-    print('payload from verify: ', result)
     if result.get("status"):
         response.status_code = status.HTTP_400_BAD_REQUEST
         return result
+    
+    user = get_user_by_email(result['email'], db)
 
-    return token.credentials
+    return 
 
 
 @users.get('/',response_model=list[User])
