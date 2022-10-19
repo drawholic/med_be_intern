@@ -9,14 +9,11 @@ services:
       - "6378:6378"
 
   db:
-    image: postgres
-      #  restart: always
+    image: postgres 
     volumes:
         - ./database-/var/lib/postgresql/data
     ports:
       - "5432:5432"
-        #env_file:
-      #- ./back/.env
     environment:
       - POSTGRES_USER=${PG_USER}
       - POSTGRES_PASSWORD=${PG_PASS}
