@@ -10,25 +10,29 @@ services:
 
   db:
     image: postgres
-    restart: always
+      #  restart: always
     volumes:
-      - ./database-/var/lib/postgresql/data 
+        - ./database-/var/lib/postgresql/data
     ports:
       - "5432:5432"
     env_file:
       - back/.env
     environment:
-      - POSTGRES_USER=${PG_USER}
-      - POSTGRES_PASSWORD=${PG_PASS}
-      - POSTGRES_DB=${PG_DB}
+      - POSTGRES_USER=postgres
+        #${PG_USER}
+      - POSTGRES_PASSWORD=postgres
+        #${PG_PASS}
+      - POSTGRES_DB=postgres
+        #${PG_DB}
 
   back:
     build: ./back
     ports:
       - "8000:8000"
-    restart: always 
+    restart: always
     volumes:
       - ./back:/core
     depends_on:
       - db
       - cache
+              
