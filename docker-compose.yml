@@ -29,4 +29,4 @@ services:
     depends_on:
       - db
       - cache
-              
+    command: uvicorn app:app --host ${BACK_HOST} --port ${BACK_PORT} --reload        
