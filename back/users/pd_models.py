@@ -1,10 +1,10 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 
 
 class UserBase(BaseModel):
     username: str
-
+    email: EmailStr    
 
 
 class UserUpgrade(UserBase):
@@ -20,17 +20,19 @@ class UserSignInToken(BaseModel):
 
 
 class UserSignUp(UserUpgrade):
+    password_confirm: str
     pass
 
 
 class User(UserBase):
     id: int
-
+    
     class Config:
         orm_mode = True
 
+
 class UserList(BaseModel):
-    users: list[User]
+    users: list[User] | None = []
 
     class Config:
         orm_mode = True
