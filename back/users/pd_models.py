@@ -49,6 +49,8 @@ class User(UserBase):
     class Config:
         orm_mode = True
 
+class UserAuth(User):
+    token: str
 
 class UserList(BaseModel):
     users: list[User] | None = []
