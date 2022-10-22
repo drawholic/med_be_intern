@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Response,  Depends, HTTPException, status
 from fastapi.security import HTTPBearer
 
+
 from db.db import get_db
 from sqlalchemy.orm import Session
 from .crud import UserCrud
@@ -18,7 +19,7 @@ token_auth = HTTPBearer()
 
 @users.post('/auth', response_model=UserAuth)
 async def auth_route(user_auth: UserSignInPass, db = Depends(get_db)) -> User:
-    user = UserCrud.auth_user(user_auth, db)
+    user = await UserCrud.auth_user(user_auth, db)
     
     if user is not None:
         
@@ -38,7 +39,7 @@ async def private(response: Response, token: str = Depends(token_auth), db: Sess
         response.status_code = status.HTTP_400_BAD_REQUEST
         return response
     if result.get('email'):
-        user = UserCrud.get_user_by_email(result.get('email'), db) 
+        user = await UserCrud.get_user_by_email(result.get('email'), db) 
         return user
 
 
@@ -47,9 +48,8 @@ async def private(response: Response, token: str = Depends(token_auth), db: Sess
 
 @users.get('/',response_model=list[User])
 async def list_users(skip:int = 0, limit:int = 10, db = Depends(get_db)) -> list[User]:
-    
     try:
-        return get_users(skip, limit, db)
+        return await UserCrud.get_users(skip, limit, db)
     
     except Exception as e:
         raise HTTPException(status_code=400) 
@@ -58,21 +58,21 @@ async def list_users(skip:int = 0, limit:int = 10, db = Depends(get_db)) -> list
 @users.get('/{user_id}', response_model=User)
 async def retrieve_user(user_id: int, db = Depends(get_db)) -> User:
     
-    return UserCrud.get_user_by_id(user_id, db)
+    return await UserCrud.get_user_by_id(user_id, db)
     
 
 
 @users.post('/', response_model=User)
 async def sign_up(user: UserSignUp, db=Depends(get_db)) -> User:
     
-    return UserCrud.create_user(user, db)
+    return await UserCrud.create_user(user, db)
     
 
 
 @users.patch('/{uid}', response_model=User)
 async def edit_user(uid: int, user_upd: UserUpgrade, db = Depends(get_db)) -> User:
 
-    user = UserCrud.update_user(uid, user_upd, db)
+    user = await UserCrud.update_user(uid, user_upd, db)
     return user
         
 
@@ -81,7 +81,7 @@ async def edit_user(uid: int, user_upd: UserUpgrade, db = Depends(get_db)) -> Us
 async def delete_user(user_id:int, db = Depends(get_db)) -> User:
     
     try:
-        user = delete_crud(user_id, db)
+        user = await UserCrud.delete_crud(user_id, db)
         return user
     
     except Exception as e:

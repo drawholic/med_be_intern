@@ -1,13 +1,20 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from db.db import database, engine
+from db.db import database, engine, async_session
 from db.models import Base
 import aioredis
 from users.router import users
 from log import logger
+import asyncio
 
-Base.metadata.create_all(bind=engine)
 
+#Base.metadata.create_all(bind=engine)
+async def init_models():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+
+#asyncio.run(init_models())
 app = FastAPI()
 
 
@@ -18,11 +25,16 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*']
 )
+
+
 app.include_router(users)
+
 
 @app.on_event('startup')
 async def startup():
-    
+
+    await init_models()
+
     logger.info('SERVER STARTED')
     await database.connect()
     redis = await aioredis.from_url('redis://localhost')
