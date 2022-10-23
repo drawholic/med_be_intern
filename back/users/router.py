@@ -73,8 +73,7 @@ async def edit_user(
         user_upd: UserUpgrade,
         token: str = Depends(token_auth), db = Depends(get_db)) -> User:
 
-    decoded = token_decode(token.credentials)
-    if await UserCrud.auth_user_token(decoded['payload'], db):
+    if await UserCrud.auth_user_token(token, db):
         user = await UserCrud.update_user(uid, user_upd, db)
         return user
     else:
@@ -82,10 +81,12 @@ async def edit_user(
 
 
 @users.delete('/{user_id}', response_model=User)
-async def delete_user(user_id:int, db = Depends(get_db), token: str = Depends(token_auth)) -> User:
+async def delete_user(
+        user_id:int, 
+        db = Depends(get_db), 
+        token: str = Depends(token_auth)) -> User:
         
-    decoded = token_decode(token.credentials)
-    user = await UserCrud.auth_user_token(decoded['payload'], db)
+    user = await UserCrud.auth_user_token(token, db)
     if user.id == user_id:
         user = await UserCrud.delete_crud(user_id, db)
         return user

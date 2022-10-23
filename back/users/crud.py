@@ -10,7 +10,7 @@ from log import logger
 from sqlalchemy.orm import Session
 from .pd_models import UserSignUp, UserUpgrade, UserSignInPass
 from sqlalchemy import select, update, delete
-
+from .auth import token_generate, token_decode
 
 
 from typing import Callable
@@ -113,11 +113,14 @@ class UserCrud:
     async def auth_user(u: UserSignInPass, db: Session) -> User:
         db_user = await UserCrud.get_user_by_email(u.email, db)
         user_pass = str(hash(u.password))
+
         if db_user.password == user_pass and db_user.email == u.email:
             return db_user
 
-    async def auth_user_token(email: str, db: Session) -> bool:
-        db_user = await UserCrud.get_user_by_email(email, db)
+    async def auth_user_token(token: str, db: Session) -> bool:
+        decoded = token_decode(token.credentials)
+        db_user = await UserCrud.get_user_by_email(decoded['email'], db)
+        
         return db_user
 
 
