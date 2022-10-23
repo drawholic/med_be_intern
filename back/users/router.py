@@ -1,15 +1,13 @@
 from fastapi import APIRouter, Response,  Depends, HTTPException, status
 from fastapi.security import HTTPBearer
 
-
 from db.db import get_db
 from sqlalchemy.orm import Session
 from .crud import UserCrud
 
-
 from .pd_models import User, UserList, UserAuth, UserSignUp, UserUpgrade, UserSignInPass
-from .exceptions import PasswordMismatchException, UserDoesNotExist, UserAlreadyExists
 from .auth import VerifyToken, token_generate, token_decode
+
 
 users = APIRouter(prefix='/users')
 
@@ -70,22 +68,28 @@ async def sign_up(user: UserSignUp, db=Depends(get_db)) -> User:
 
 
 @users.patch('/{uid}', response_model=User)
-async def edit_user(uid: int, user_upd: UserUpgrade, db = Depends(get_db)) -> User:
+async def edit_user(
+        uid: int, 
+        user_upd: UserUpgrade,
+        token: str = Depends(token_auth), db = Depends(get_db)) -> User:
 
-    user = await UserCrud.update_user(uid, user_upd, db)
-    return user
-        
+    decoded = token_decode(token.credentials)
+    if await UserCrud.auth_user_token(decoded['payload'], db):
+        user = await UserCrud.update_user(uid, user_upd, db)
+        return user
+    else:
+        raise HTTPException(status_code=400, detail='authentication error')        
 
 
 @users.delete('/{user_id}', response_model=User)
-async def delete_user(user_id:int, db = Depends(get_db)) -> User:
-    
-    try:
+async def delete_user(user_id:int, db = Depends(get_db), token: str = Depends(token_auth)) -> User:
+        
+    decoded = token_decode(token.credentials)
+    user = await UserCrud.auth_user_token(decoded['payload'], db)
+    if user.id == user_id:
         user = await UserCrud.delete_crud(user_id, db)
         return user
-    
-    except Exception as e:
-        logger.debug(e) 
-        raise HTTPException(status_code=400)
+    else:
+        raise HTTPException(status_code=400, detail='authentication error')
 
 

@@ -1,8 +1,13 @@
 from db.models import User
-from .exceptions import PasswordMismatchException, UserDoesNotExist, UserAlreadyExists
+from .exceptions import (
+        PasswordMismatchException,
+        UserDoesNotExist,
+        UserAlreadyExists,
+        EmailChangeException
+        )
+
 from log import logger
 from sqlalchemy.orm import Session
-from .exceptions import UserAlreadyExists
 from .pd_models import UserSignUp, UserUpgrade, UserSignInPass
 from sqlalchemy import select, update, delete
 
@@ -62,13 +67,15 @@ class UserCrud:
 
 
     async def update_user(uid: int, user_data: UserUpgrade, db: Session) -> User:
-        
+       
         if await UserCrud.check_user_id(uid, db):
             user_data = user_data.dict(exclude_unset=True)
+        
             if 'password1' in user_data.keys():
                 user_data['password'] = user_data['password1']
                 del user_data['password1']
                 del user_data['password2']
+            
             u = update(User).where(User.id==uid)
             u = u.values(**user_data)
             u.execution_options(synchronize_session='fetch')
@@ -88,6 +95,7 @@ class UserCrud:
     async def delete_crud(uid: int, db: Session) -> User:
         user = await UserCrud.get_user_by_id(uid, db)
         user_delete = delete(User).where(User.id==uid)
+        
         await db.execute(user_delete)
         await db.commit()
          
@@ -108,7 +116,9 @@ class UserCrud:
         if db_user.password == user_pass and db_user.email == u.email:
             return db_user
 
-
+    async def auth_user_token(email: str, db: Session) -> bool:
+        db_user = await UserCrud.get_user_by_email(email, db)
+        return db_user
 
 
 

@@ -14,3 +14,8 @@ class UserDoesNotExist(HTTPException):
 class UserAlreadyExists(HTTPException):
     def __init__(self):
         super().__init__(status_code=400, detail='User already exists')
+
+
+class EmailChangeException(HTTPException):
+    def __init__(self):
+        super().__init__(status_code=400, detail='Change email is not possible')

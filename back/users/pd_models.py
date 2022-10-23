@@ -7,12 +7,11 @@ class UserBase(BaseModel):
     email: EmailStr    
 
 
-class UserUpgrade(UserBase):
+class UserUpgrade(BaseModel):
+
+    username: str | None = None
     password1: str | None = None
-    username: str | None = None
-    email: EmailStr | None = None
     password2: str | None = None
-    username: str | None = None
 
     @validator('password2')
     def passwords_match(cls, v, values):
@@ -40,8 +39,6 @@ class UserSignUp(UserBase):
         return v
 
 
-
-
 class User(UserBase):
     id: int
     username: str | None
@@ -49,11 +46,16 @@ class User(UserBase):
     class Config:
         orm_mode = True
 
+
 class UserAuth(User):
     token: str
+
 
 class UserList(BaseModel):
     users: list[User] | None = []
 
     class Config:
         orm_mode = True
+
+
+
