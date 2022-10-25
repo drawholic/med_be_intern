@@ -61,7 +61,7 @@ async def edit_user(
         user_upd: UserUpgrade,
         token: str = Depends(token_auth), db = Depends(get_db)) -> User:
 
-    if await UserCrud.auth_user_token(token, db):
+    if await UserCrud.authenticate(token, db):
         user = await UserCrud.update_user(uid, user_upd, db)
         return user
     else:
@@ -74,7 +74,7 @@ async def delete_user(
         db = Depends(get_db), 
         token: str = Depends(token_auth)) -> User:
         
-    user = await UserCrud.auth_user_token(token, db)
+    user = await UserCrud.authenticate(token, db)
     if user.id == user_id:
         user = await UserCrud.delete_crud(user_id, db)
         return user
