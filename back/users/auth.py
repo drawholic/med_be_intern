@@ -1,6 +1,8 @@
 import os
 from dotenv import load_dotenv
 import jwt
+from .exceptions import BadTokenException
+
 
 def get_env() -> dict:
     load_dotenv()
@@ -24,13 +26,16 @@ def token_generate(payload: str) -> str:
 def token_decode(token: str):
     load_dotenv()
     secret = os.getenv('SECRET')
-    result = jwt.decode(token, secret, algorithms=['HS256'])
-    
+    try:
+        result = jwt.decode(token.credentials, secret, algorithms=['HS256'])['payload']
+        print(result, 'result')
+        return result 
+    except Exception:
+        raise BadTokenException
             
-    return result
 
 
-class VerifyToken():
+class AuthToken():
 
     def __init__(self, token):
         self.token = token

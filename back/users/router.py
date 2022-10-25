@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Response,  Depends, HTTPException, status
 from fastapi.security import HTTPBearer
-
+import hashlib
 from db.db import get_db
 from sqlalchemy.orm import Session
 from .crud import UserCrud
 
 from .pd_models import User, UserList, UserAuth, UserSignUp, UserUpgrade, UserSignInPass
-from .auth import VerifyToken, token_generate, token_decode
+from .auth import AuthToken, token_generate, token_decode
 
 
 users = APIRouter(prefix='/users')
@@ -15,42 +15,30 @@ users = APIRouter(prefix='/users')
 token_auth = HTTPBearer()
 
 
-@users.post('/auth', response_model=UserAuth)
-async def auth_route(user_auth: UserSignInPass, db = Depends(get_db)) -> User:
+@users.post('/get_token')
+async def auth_route(user_auth: UserSignInPass, db = Depends(get_db)) -> str:
     user = await UserCrud.auth_user(user_auth, db)
     
     if user is not None:
         
         token = token_generate(user.email)
-        user.token = token
-        return user
+        return token 
     else:
         raise HTTPException(status_code=400, detail='authentication error')
 
 
-@users.get('/private')
+
+
+@users.get('/private', response_model=User)
 async def private(response: Response, token: str = Depends(token_auth), db: Session = Depends(get_db)):
+    return await UserCrud.authenticate(token, db)
+
+
+@users.get('/', response_model=list[User])
+async def list_users(skip:int = 0, limit:int = 10, db = Depends(get_db))-> list[User] | None:
+
+    return await UserCrud.get_users(skip, limit, db)
     
-    result = VerifyToken(token.credentials).verify()
-    
-    if result.get("status"):
-        response.status_code = status.HTTP_400_BAD_REQUEST
-        return response
-    if result.get('email'):
-        user = await UserCrud.get_user_by_email(result.get('email'), db) 
-        return user
-
-
-    return result
-
-
-@users.get('/',response_model=list[User])
-async def list_users(skip:int = 0, limit:int = 10, db = Depends(get_db)) -> list[User]:
-    try:
-        return await UserCrud.get_users(skip, limit, db)
-    
-    except Exception as e:
-        raise HTTPException(status_code=400) 
 
 
 @users.get('/{user_id}', response_model=User)
