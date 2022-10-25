@@ -44,8 +44,8 @@ async def private(response: Response, token: str = Depends(token_auth), db: Sess
     return result
 
 
-@users.get('/',response_model=list[User])
-async def list_users(skip:int = 0, limit:int = 10, db = Depends(get_db)) -> list[User]:
+@users.get('/', response_model=list[User])
+async def list_users(skip:int = 0, limit:int = 10, db = Depends(get_db))-> list[User]:
     try:
         return await UserCrud.get_users(skip, limit, db)
     
