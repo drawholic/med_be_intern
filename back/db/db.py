@@ -22,7 +22,6 @@ database = databases.Database(DB_URL)
 engine = create_async_engine(DB_URL, echo=True)
 
 
-#ss = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 

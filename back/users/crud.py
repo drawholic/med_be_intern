@@ -14,12 +14,12 @@ from .auth import AuthToken, token_generate, token_decode
 
 
 from typing import Callable
+import dotenv
+
+dotenv.load_dotenv('.env')
 
 
-
-salt = 'imfuckingcool'
-
-
+salt = os.getenv('SECRET')
 
 class UserCrud:
     
