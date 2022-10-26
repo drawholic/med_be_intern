@@ -1,4 +1,4 @@
-from db.models import User
+from db.models import User, Company, Owner
 from .exceptions import (
         PasswordMismatchException,
         UserDoesNotExist,
@@ -60,7 +60,7 @@ class UserCrud:
         else:
             password = str(hash(user.password1))
             user_db = User(password=password, email=user.email)
-            db.add(user_db)
+            await db.add(user_db)
             await db.commit()
             logger.info(f'user {user.email} is created')
             return user_db
@@ -103,10 +103,13 @@ class UserCrud:
         return user
 
 
-    async def get_users(skip: int, limit: int, db: Session) -> list[User]:
-        users = await db.execute(select(User))
+    async def get_users(skip: int, limit: int, db: Session) -> list[User] | None:
+        users = await db.execute(
+                select(User.email, Company.title).select_from(Owner)
+                )
+        #users = await db.execute(select(User))
         users = users.scalars().all()
-
+        print(users)
         logger.info('users were listed')
         return users
     

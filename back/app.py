@@ -6,7 +6,7 @@ import aioredis
 from users.router import users
 from log import logger
 import asyncio
-
+from companies.router import router
 
 async def init_models():
     async with engine.begin() as conn:
@@ -26,6 +26,7 @@ app.add_middleware(
 
 
 app.include_router(users)
+app.include_router(router)
 
 
 @app.on_event('startup')

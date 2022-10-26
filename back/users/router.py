@@ -9,7 +9,7 @@ from .pd_models import User, UserList, UserAuth, UserSignUp, UserUpgrade, UserSi
 from .auth import VerifyToken, token_generate, token_decode
 
 
-users = APIRouter(prefix='/users')
+users = APIRouter(prefix='/users', tags=['Users'])
 
 
 token_auth = HTTPBearer()
@@ -44,8 +44,10 @@ async def private(response: Response, token: str = Depends(token_auth), db: Sess
     return result
 
 
-@users.get('/', response_model=list[User])
-async def list_users(skip:int = 0, limit:int = 10, db = Depends(get_db))-> list[User]:
+@users.get('/',
+       # response_model=list[User]
+        )
+async def list_users(skip:int = 0, limit:int = 10, db = Depends(get_db))-> list[User] | None:
     try:
         return await UserCrud.get_users(skip, limit, db)
     

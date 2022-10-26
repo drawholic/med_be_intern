@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Integer,Boolean, String, Column, DateTime
+from sqlalchemy import Integer, ForeignKey, Boolean, String, Column, DateTime
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
@@ -21,8 +21,34 @@ class User(BaseModel):
     username = Column(String, unique=True)
     password = Column(String, nullable=False)
     email = Column(String, nullable=False,unique=True)
-    companies = relationship('Company', backref='owner')
-    requests = relationship('Company', backref='invited')
+    
+    #companies = relationship('Company', backref='own')
+    
+
+class Owner(BaseModel):
+    __tablename__ = 'owners'
+
+    user_id = Column(Integer, ForeignKey('users.id'))
+    company_id = Column(Integer, ForeignKey('companies.id'))
+
+
+class Invitation(BaseModel):
+    __tablename__ = 'invitations'
+
+    user_id = Column(Integer, ForeignKey('users.id'))
+    company_id = Column(Integer, ForeignKey('companies.id'))
+
+
+class RequestToJoin(BaseModel):
+    __tablename__ = 'requests'
+    user_id = Column(Integer, ForeignKey('users.id'))
+    company_id = Column(Integer, ForeignKey('companies.id'))
+
+
+class Admin(BaseModel):
+    __tablename__ = 'admins'
+    admin_id = Column(Integer, ForeignKey('users.id'))
+    company_id = Column(Integer, ForeignKey('companies.id'))
 
 
 class Company(BaseModel):
@@ -31,6 +57,19 @@ class Company(BaseModel):
     title = Column(String)
     description = Column(String)
     hidden = Column(Boolean, default=False)
-    invited = relationship('User', backref='requests')
-    admins = relationship('User', backref='')
-    requests = relationship('User')
+    owner = Column(Integer, ForeignKey('users.id'))        
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
