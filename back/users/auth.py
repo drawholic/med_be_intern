@@ -5,6 +5,7 @@ import jwt
 from .exceptions import BadTokenException
 from fastapi import HTTPException
 
+
 def get_env() -> dict:
     load_dotenv()
     env = {'DOMAIN' :os.getenv('DOMAIN'),
@@ -66,4 +67,4 @@ class AuthToken():
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
 
-        return 
+        return payload

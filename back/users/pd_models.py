@@ -26,10 +26,6 @@ class UserSignInPass(UserBase):
     password: str
 
 
-class UserSignInToken(BaseModel):
-    token: str
-
-
 class UserSignUp(UserBase):
     password1: str
     password2: str
