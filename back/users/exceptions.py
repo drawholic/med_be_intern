@@ -19,3 +19,7 @@ class UserAlreadyExists(HTTPException):
 class EmailChangeException(HTTPException):
     def __init__(self):
         super().__init__(status_code=400, detail='Change email is not possible')
+
+class BadTokenException(HTTPException):
+    def __init__(self):
+        super().__init__(status_code=400, detail='Bad token')

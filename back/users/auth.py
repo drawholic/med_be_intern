@@ -1,15 +1,18 @@
+
 import os
 from dotenv import load_dotenv
 import jwt
+from .exceptions import BadTokenException
+from fastapi import HTTPException
 
 def get_env() -> dict:
     load_dotenv()
-    env = {'DOMAIN':os.getenv('DOMAIN'),
-            "AUDIENCE":os.getenv('AUDIENCE'),
-            'ISSUER':os.getenv('ISSUER'),
-            'ALGORITHMS':os.getenv('ALGORITHMS'),
-            'SECRET':os.getenv('SECRET')
-            }
+    env = {'DOMAIN' :os.getenv('DOMAIN'),
+           "AUDIENCE" :os.getenv('AUDIENCE'),
+           'ISSUER' :os.getenv('ISSUER'),
+           'ALGORITHMS' :os.getenv('ALGORITHMS'),
+           'SECRET' :os.getenv('SECRET')
+           }
     return env
 
 
@@ -17,20 +20,22 @@ def token_generate(payload: str) -> str:
     load_dotenv()
     secret = os.getenv('SECRET')
     token = jwt.encode({"payload": payload}, secret, algorithm='HS256')
-    
+
     return token
 
 
 def token_decode(token: str):
     load_dotenv()
     secret = os.getenv('SECRET')
-    result = jwt.decode(token, secret, algorithms=['HS256'])['payload']
-    
-            
-    return result
+    try:
+        result = jwt.decode(token.credentials, secret, algorithms=['HS256'])['payload']
+        return result
+    except Exception:
+        raise BadTokenException
 
 
-class VerifyToken():
+
+class AuthToken():
 
     def __init__(self, token):
         self.token = token
@@ -45,9 +50,10 @@ class VerifyToken():
                 self.token
             ).key
         except jwt.exceptions.PyJWKClientError as error:
-            return {"status": "error", "msg": error.__str__()}
+            raise HTTPException(status_code=400, detail=error.__str__())
         except jwt.exceptions.DecodeError as error:
-            return {"status": "error", "msg": error.__str__()}
+            raise HTTPException(status_code=400, detail=error.__str__())
+
 
         try:
             payload = jwt.decode(
@@ -58,8 +64,6 @@ class VerifyToken():
                 issuer=self.config["ISSUER"],
             )
         except Exception as e:
-            return {"status": "error", "message": str(e)}
+            raise HTTPException(status_code=400, detail=str(e))
 
-        return payload
-
-
+        return 

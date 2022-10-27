@@ -5,8 +5,8 @@ from db.db import get_db
 from sqlalchemy.orm import Session
 from .crud import UserCrud
 
-from .pd_models import User, UserList, UserAuth, UserSignUp, UserUpgrade, UserSignInPass
-from .auth import VerifyToken, token_generate, token_decode
+from .pd_models import User, UserAuth, UserSignUp, UserUpgrade, UserSignInPass
+from .auth import AuthToken, token_generate
 
 
 users = APIRouter(prefix='/users', tags=['Users'])
@@ -15,8 +15,8 @@ users = APIRouter(prefix='/users', tags=['Users'])
 token_auth = HTTPBearer()
 
 
-@users.post('/auth', response_model=UserAuth)
-async def auth_route(user_auth: UserSignInPass, db = Depends(get_db)) -> User:
+@users.post('/get_token', response_model=UserAuth)
+async def get_token(user_auth: UserSignInPass, db = Depends(get_db)) -> User:
     user = await UserCrud.auth_user(user_auth, db)
     
     if user is not None:
@@ -30,14 +30,14 @@ async def auth_route(user_auth: UserSignInPass, db = Depends(get_db)) -> User:
 
 @users.get('/private')
 async def private(response: Response, token: str = Depends(token_auth), db: Session = Depends(get_db)):
-    
-    result = VerifyToken(token.credentials).verify()
-    
+
+    result = AuthToken(token.credentials).verify()
+
     if result.get("status"):
         response.status_code = status.HTTP_400_BAD_REQUEST
         return response
     if result.get('email'):
-        user = await UserCrud.get_user_by_email(result.get('email'), db) 
+        user = await UserCrud.get_user_by_email(result.get('email'), db)
         return user
 
 
@@ -69,7 +69,7 @@ async def sign_up(user: UserSignUp, db=Depends(get_db)):
 
 @users.patch('/{uid}', response_model=User)
 async def edit_user(
-        uid: int, 
+        uid: int,
         user_upd: UserUpgrade,
         token: str = Depends(token_auth), db = Depends(get_db)) -> User:
 
@@ -80,15 +80,15 @@ async def edit_user(
         user = await UserCrud.update_user(uid, user_upd, db)
         return user
     else:
-        raise HTTPException(status_code=400, detail='authentication error')        
+        raise HTTPException(status_code=400, detail='authentication error')
 
 
 @users.delete('/{user_id}', response_model=User)
 async def delete_user(
-        user_id:int, 
-        db = Depends(get_db), 
+        user_id:int,
+        db = Depends(get_db),
         token: str = Depends(token_auth)) -> User:
-        
+
     user = await UserCrud.auth_user_token(token, db)
     if user.id == user_id:
         user = await UserCrud.delete_crud(user_id, db)

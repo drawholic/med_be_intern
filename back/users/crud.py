@@ -1,19 +1,26 @@
-from db.models import User, Company, Owner
+from db.models import User
 from .exceptions import (
         PasswordMismatchException,
         UserDoesNotExist,
         UserAlreadyExists,
         EmailChangeException
         )
-
+import os
+from .utils import encode_password, check_password
 from log import logger
 from sqlalchemy.orm import Session
 from .pd_models import UserSignUp, UserUpgrade, UserSignInPass
-from sqlalchemy import select, update, delete, insert
-from .auth import token_generate, token_decode
+from sqlalchemy import select, update, delete
+from .auth import AuthToken, token_generate, token_decode
 
 
 from typing import Callable
+import dotenv
+
+dotenv.load_dotenv('.env')
+
+
+salt = os.getenv('SECRET')
 
 class UserCrud:
     
@@ -54,26 +61,24 @@ class UserCrud:
         return bool(user)
 
 
-    async def create_user(user: UserSignUp, db: Session):
+    async def create_user(user: UserSignUp, db: Session) -> User:
         if await UserCrud.check_user_email(user.email, db):
             raise UserAlreadyExists
         else:
-            password = token_generate(user.password1)
-            stm = insert(User).values(email=user.email, password=password)
-            await db.execute(stm)
+            
+            password = encode_password(user.password1, salt)
+            user_db = User(password=password, email=user.email)
+            db.add(user_db)
             await db.commit()
-
             logger.info(f'user {user.email} is created')
-
-            user = await UserCrud.get_user_by_email(user.email, db)
-            return user
+            return user_db
 
 
     async def update_user(uid: int, user_data: UserUpgrade, db: Session) -> User:
        
         if await UserCrud.check_user_id(uid, db):
             user_data = user_data.dict(exclude_unset=True)
-        
+            
             if 'password1' in user_data.keys():
                 user_data['password'] = user_data['password1']
                 del user_data['password1']
@@ -106,23 +111,50 @@ class UserCrud:
         return user
 
 
-    async def get_users(skip: int, limit: int, db: Session) -> list[User] | None:
-        users = await db.execute(select(User))
+    async def get_users(skip: int, limit: int, db: Session) -> list[User]:
+        users = await db.execute(select(User).offset(skip).limit(limit+skip))
         users = users.scalars().all()
-        print(users)
+
         logger.info('users were listed')
         return users
-    
+
+
+    async def isAuth0(token: str):
+        token = AuthToken(token.credentials).verify()
+        return not token.get('status')
+
+
+    async def isToken(token):
+        email = token_decode(token)
+        return bool(email)
+
+
+    async def authenticate(token: str, db: Session) -> User:
+
+        if await UserCrud.isAuth0(token):
+            email = AuthToken(token.credentials).verify()['email']
+            user = await UserCrud.get_user_by_email(email, db)
+            return user
+            
+        elif await UserCrud.isToken(token):
+            user  = await UserCrud.auth_user_token(token, db)
+            return user
+       
+        else:
+            raise AuthenticationError
+
     async def auth_user(u: UserSignInPass, db: Session) -> User:
         db_user = await UserCrud.get_user_by_email(u.email, db)
-        db_pass = token_decode(db_user.password)
-
-        if db_pass == u.password and db_user.email == u.email:
+        
+        if db_user is None:
+            raise UserDoesNotExist
+        
+        if check_password(db_user.password, u.password, salt):
             return db_user
 
     async def auth_user_token(token: str, db: Session) -> bool:
-        decoded = token_decode(token.credentials)
-        db_user = await UserCrud.get_user_by_email(decoded, db)
+        email = token_decode(token)
+        db_user = await UserCrud.get_user_by_email(email, db)
         
         return db_user
 
