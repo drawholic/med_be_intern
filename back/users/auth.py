@@ -27,8 +27,7 @@ def token_decode(token: str):
     load_dotenv()
     secret = os.getenv('SECRET')
     try:
-        result = jwt.decode(token.credentials, secret, algorithms=['HS256'])['payload']
-        print(result, 'result')
+        result = jwt.decode(token.credentials, secret, algorithms=['HS256'])['payload'] 
         return result 
     except Exception:
         raise BadTokenException
