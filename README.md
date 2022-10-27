@@ -4,6 +4,12 @@ initial file for main branch
 docker-compose - 1.29.2
 docker - 20.10.12
 
-треба створити файл .env для докер-компос і бд. файли що звертаються до нього, дивляться у папку back. аргументи - PG_DB, PD_USER, PG_PASS, імя бази даних, імя юзера, пароль юзера відповідно. наче все
+потрібен файл .env для docker-compose і postgresql у папці back.
+аргументи:
+- PG_DB - db name
+- PD_USER - db user
+- PG_PASS - db password 
+- PG_HOST - db host
+- PG_PORT - db port
 
 to run docker-compose use 'docker-compose build && docker-compose up'
