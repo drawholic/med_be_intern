@@ -5,6 +5,7 @@ from .exceptions import (
         UserAlreadyExists,
         EmailChangeException
         )
+import os
 from .utils import encode_password, check_password
 from log import logger
 from sqlalchemy.orm import Session
@@ -111,7 +112,7 @@ class UserCrud:
 
 
     async def get_users(skip: int, limit: int, db: Session) -> list[User]:
-        users = await db.execute(select(User))
+        users = await db.execute(select(User).offset(skip).limit(limit+skip))
         users = users.scalars().all()
 
         logger.info('users were listed')

@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 import jwt
 from .exceptions import BadTokenException
-
+from fastapi import HTTPException
 
 def get_env() -> dict:
     load_dotenv()
@@ -50,9 +50,10 @@ class AuthToken():
                 self.token
             ).key
         except jwt.exceptions.PyJWKClientError as error:
-            return {"status": "error", "msg": error.__str__()}
+            raise HTTPException(status_code=400, detail=error.__str__())
         except jwt.exceptions.DecodeError as error:
-            return {"status": "error", "msg": error.__str__()}
+            raise HTTPException(status_code=400, detail=error.__str__())
+
 
         try:
             payload = jwt.decode(
@@ -63,7 +64,7 @@ class AuthToken():
                 issuer=self.config["ISSUER"],
             )
         except Exception as e:
-            return {"status": "error", "message": str(e)}
+            raise HTTPException(status_code=400, detail=str(e))
 
         return payload
 
