@@ -2,7 +2,7 @@ from pydantic import BaseModel, validator, EmailStr
 from .exceptions import PasswordMismatchException
 from fastapi import HTTPException
 from datetime import datetime
-from companies.pd_models import Company
+from companies.c_models import Company
 
 
 class UserBase(BaseModel):

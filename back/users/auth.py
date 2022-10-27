@@ -24,7 +24,7 @@ def token_generate(payload: str) -> str:
 def token_decode(token: str):
     load_dotenv()
     secret = os.getenv('SECRET')
-    result = jwt.decode(token, secret, algorithms=['HS256'])
+    result = jwt.decode(token, secret, algorithms=['HS256'])['payload']
     
             
     return result

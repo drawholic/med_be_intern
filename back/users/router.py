@@ -44,9 +44,7 @@ async def private(response: Response, token: str = Depends(token_auth), db: Sess
     return result
 
 
-@users.get('/',
-       # response_model=list[User]
-        )
+@users.get('/',response_model=list[User])
 async def list_users(skip:int = 0, limit:int = 10, db = Depends(get_db))-> list[User] | None:
     try:
         return await UserCrud.get_users(skip, limit, db)
@@ -62,10 +60,10 @@ async def retrieve_user(user_id: int, db = Depends(get_db)) -> User:
     
 
 
-@users.post('/', response_model=User)
-async def sign_up(user: UserSignUp, db=Depends(get_db)) -> User:
-    
-    return await UserCrud.create_user(user, db)
+@users.post('/',response_model=User)
+async def sign_up(user: UserSignUp, db=Depends(get_db)):
+    user = await UserCrud.create_user(user, db)
+    return user
     
 
 
@@ -76,6 +74,9 @@ async def edit_user(
         token: str = Depends(token_auth), db = Depends(get_db)) -> User:
 
     if await UserCrud.auth_user_token(token, db):
+        user = await UserCrud.update_user(uid, user_upd, db)
+        return user
+    elif VerifyToken(token.credentials).verify().get('email'):
         user = await UserCrud.update_user(uid, user_upd, db)
         return user
     else:

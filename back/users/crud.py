@@ -9,7 +9,7 @@ from .exceptions import (
 from log import logger
 from sqlalchemy.orm import Session
 from .pd_models import UserSignUp, UserUpgrade, UserSignInPass
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, update, delete, insert
 from .auth import token_generate, token_decode
 
 
@@ -54,16 +54,19 @@ class UserCrud:
         return bool(user)
 
 
-    async def create_user(user: UserSignUp, db: Session) -> User:
+    async def create_user(user: UserSignUp, db: Session):
         if await UserCrud.check_user_email(user.email, db):
             raise UserAlreadyExists
         else:
-            password = str(hash(user.password1))
-            user_db = User(password=password, email=user.email)
-            await db.add(user_db)
+            password = token_generate(user.password1)
+            stm = insert(User).values(email=user.email, password=password)
+            await db.execute(stm)
             await db.commit()
+
             logger.info(f'user {user.email} is created')
-            return user_db
+
+            user = await UserCrud.get_user_by_email(user.email, db)
+            return user
 
 
     async def update_user(uid: int, user_data: UserUpgrade, db: Session) -> User:
@@ -104,10 +107,7 @@ class UserCrud:
 
 
     async def get_users(skip: int, limit: int, db: Session) -> list[User] | None:
-        users = await db.execute(
-                select(User.email, Company.title).select_from(Owner)
-                )
-        #users = await db.execute(select(User))
+        users = await db.execute(select(User))
         users = users.scalars().all()
         print(users)
         logger.info('users were listed')
@@ -115,14 +115,14 @@ class UserCrud:
     
     async def auth_user(u: UserSignInPass, db: Session) -> User:
         db_user = await UserCrud.get_user_by_email(u.email, db)
-        user_pass = str(hash(u.password))
+        db_pass = token_decode(db_user.password)
 
-        if db_user.password == user_pass and db_user.email == u.email:
+        if db_pass == u.password and db_user.email == u.email:
             return db_user
 
     async def auth_user_token(token: str, db: Session) -> bool:
         decoded = token_decode(token.credentials)
-        db_user = await UserCrud.get_user_by_email(decoded['email'], db)
+        db_user = await UserCrud.get_user_by_email(decoded, db)
         
         return db_user
 
