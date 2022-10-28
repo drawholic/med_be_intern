@@ -4,9 +4,10 @@ from fastapi.security import HTTPBearer
 from db.db import get_db
 from sqlalchemy.orm import Session
 from .crud import UserCrud
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from .pd_models import User, UserAuth, UserSignUp, UserUpgrade, UserSignInPass
-from .auth import AuthToken, token_generate
+from .pd_models import User,UserList, UserSignUp, UserUpgrade, UserSignInPass
+from .auth import token_generate
 
 
 users = APIRouter(prefix='/users', tags=['Users'])
@@ -15,85 +16,64 @@ users = APIRouter(prefix='/users', tags=['Users'])
 token_auth = HTTPBearer()
 
 
-@users.post('/get_token', response_model=UserAuth)
-async def get_token(user_auth: UserSignInPass, db = Depends(get_db)) -> User:
+@users.post('/get_token')
+async def get_token(user_auth: UserSignInPass, db = Depends(get_db)):
     user = await UserCrud.auth_user(user_auth, db)
     
     if user is not None:
         
         token = token_generate(user.email)
-        user.token = token
-        return user
+        return token
     else:
         raise HTTPException(status_code=400, detail='authentication error')
 
 
 @users.get('/private')
-async def private(response: Response, token: str = Depends(token_auth), db: Session = Depends(get_db)):
+async def private(token: str = Depends(token_auth), db: Session = Depends(get_db)):
 
-    result = AuthToken(token.credentials).verify()
-
-    if result.get("status"):
-        response.status_code = status.HTTP_400_BAD_REQUEST
-        return response
-    if result.get('email'):
-        user = await UserCrud.get_user_by_email(result.get('email'), db)
-        return user
+    await UserCrud.authenticate(token, db)
 
 
-    return result
-
-
-@users.get('/',response_model=list[User])
-async def list_users(skip:int = 0, limit:int = 10, db = Depends(get_db))-> list[User] | None:
-    try:
-        return await UserCrud.get_users(skip, limit, db)
-    
-    except Exception as e:
-        raise HTTPException(status_code=400) 
+@users.get('/', response_model=UserList)
+async def list_users(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    users = await UserCrud.get_users(skip, limit, db)
+    return {'users': users}
 
 
 @users.get('/{user_id}', response_model=User)
-async def retrieve_user(user_id: int, db = Depends(get_db)) -> User:
-    
-    return await UserCrud.get_user_by_id(user_id, db)
-    
-
-
-@users.post('/',response_model=User)
-async def sign_up(user: UserSignUp, db=Depends(get_db)):
-    user = await UserCrud.create_user(user, db)
+async def retrieve_user(user_id: int, db: Session = Depends(get_db)):
+    user = await UserCrud.get_user_by_id(user_id, db)
     return user
-    
+
+@users.post('/')
+async def sign_up(user: UserSignUp, db: AsyncSession = Depends(get_db)):
+    user = await UserCrud.create_user(user, db)
+    if user is not None:
+        await db.commit()
+    else:
+        await db.rollback()
+        raise HTTPException
 
 
-@users.patch('/{uid}', response_model=User)
+@users.patch('/{uid}')
 async def edit_user(
         uid: int,
         user_upd: UserUpgrade,
-        token: str = Depends(token_auth), db = Depends(get_db)) -> User:
+        token: str = Depends(token_auth),
+        db: Session = Depends(get_db)) -> User:
 
-    if await UserCrud.auth_user_token(token, db):
-        user = await UserCrud.update_user(uid, user_upd, db)
-        return user
-    elif VerifyToken(token.credentials).verify().get('email'):
-        user = await UserCrud.update_user(uid, user_upd, db)
-        return user
-    else:
-        raise HTTPException(status_code=400, detail='authentication error')
+    await UserCrud.authenticate(token, db)
+    user = await UserCrud.update_user(uid, user_upd, db)
+    return user
 
 
-@users.delete('/{user_id}', response_model=User)
+@users.delete('/{user_id}')
 async def delete_user(
-        user_id:int,
-        db = Depends(get_db),
-        token: str = Depends(token_auth)) -> User:
+        user_id: int,
+        db: AsyncSession = Depends(get_db),
+        token: str = Depends(token_auth)):
 
-    user = await UserCrud.auth_user_token(token, db)
-    if user.id == user_id:
-        user = await UserCrud.delete_crud(user_id, db)
-        return user
-    else:
-        raise HTTPException(status_code=400, detail='authentication error')
+    await UserCrud.authenticate(token, db)
+    await UserCrud.delete_crud(user_id, db)
 
 

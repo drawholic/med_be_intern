@@ -35,7 +35,6 @@ def token_decode(token: str):
         raise BadTokenException
 
 
-
 class AuthToken():
 
     def __init__(self, token):
@@ -54,7 +53,6 @@ class AuthToken():
             raise HTTPException(status_code=400, detail=error.__str__())
         except jwt.exceptions.DecodeError as error:
             raise HTTPException(status_code=400, detail=error.__str__())
-
 
         try:
             payload = jwt.decode(

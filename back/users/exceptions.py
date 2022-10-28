@@ -23,3 +23,6 @@ class EmailChangeException(HTTPException):
 class BadTokenException(HTTPException):
     def __init__(self):
         super().__init__(status_code=400, detail='Bad token')
+class AuthenticationException(HTTPException):
+    def __init__(self):
+        super().__init__(status_code=400, detail='Authentication issues')

@@ -13,4 +13,4 @@ def check_password(password, user_password):
 def encode_password(password):
     load_dotenv()
     secret = os.getenv('SECRET')
-    return jwt.encode(password, secret, algorithm='HS256')
+    return jwt.encode({'payload':password}, secret, algorithm='HS256')

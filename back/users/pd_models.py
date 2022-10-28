@@ -2,8 +2,6 @@ from pydantic import BaseModel, validator, EmailStr
 from .exceptions import PasswordMismatchException
 from fastapi import HTTPException
 from datetime import datetime
-from companies.c_models import Company
-
 
 class UserBase(BaseModel):
     email: EmailStr    
@@ -42,7 +40,8 @@ class User(UserBase):
     username: str | None
     created_at: datetime
     updated_at: datetime | None
-    companies: list[Company] | None = [] 
+    user_companies: list
+
     class Config:
         orm_mode = True
 
