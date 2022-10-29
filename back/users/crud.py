@@ -32,8 +32,9 @@ class UserCrud:
 
     async def get_user_by_email(email: str, db: Session) -> User:
         user = await UserCrud.user_query_email(email, db)
+        user = user.scalars().first()
         if user is not None:
-            return user.scalars().first()
+            return user
         else:
             raise UserDoesNotExist
 
@@ -145,7 +146,7 @@ class UserCrud:
     async def auth_user_token(token: str, db: Session) -> bool:
         email = token_decode(token)
         db_user = await UserCrud.get_user_by_email(email, db)
-        
+
         return db_user.id
 
 

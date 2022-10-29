@@ -18,6 +18,9 @@ class CompanyBase(BaseModel):
 class CompanyCreate(CompanyBase):
     pass
 
+class CompanyUpdate(CompanyBase):
+    hidden: bool | None
+
 class Company(CompanyBase):
     id: int
     created_at: datetime
