@@ -40,7 +40,6 @@ class User(UserBase):
     username: str | None
     created_at: datetime
     updated_at: datetime | None
-    user_companies: list
 
     class Config:
         orm_mode = True

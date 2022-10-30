@@ -1,19 +1,19 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from datetime import datetime
 
 
 class UserCompany(BaseModel):
     id: int
     username: str | None
+    email: EmailStr
     created_at: datetime
     updated_at: datetime | None
     class Config:
         orm_mode = True
 
 class CompanyBase(BaseModel):
-    title: str
-    description: str
-
+    title: str | None
+    description: str | None
 
 class CompanyCreate(CompanyBase):
     pass
@@ -26,8 +26,6 @@ class Company(CompanyBase):
     created_at: datetime
     updated_at: datetime | None
     hidden: bool
-    owner_id: int
-    owner: UserCompany
 
     class Config:
         orm_mode = True

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from .crud import UserCrud
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .pd_models import User,UserList, UserSignUp, UserUpgrade, UserSignInPass
+from .pd_models import User, UserList, UserSignUp, UserUpgrade, UserSignInPass
 from .auth import token_generate
 
 
@@ -18,7 +18,7 @@ token_auth = HTTPBearer()
 
 @users.post('/get_token')
 async def get_token(user_auth: UserSignInPass, db = Depends(get_db)):
-    user = await UserCrud.auth_user(user_auth, db)
+    user = await UserCrud(db).auth_user(user_auth)
     
     if user is not None:
         
@@ -31,25 +31,35 @@ async def get_token(user_auth: UserSignInPass, db = Depends(get_db)):
 @users.get('/private')
 async def private(token: str = Depends(token_auth), db: Session = Depends(get_db)):
 
-    await UserCrud.authenticate(token, db)
+    await UserCrud(db).authenticate(token)
 
 
-@users.get('/', response_model=UserList)
+@users.get('/'
+    # , response_model=list[User]
+           )
 async def list_users(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    users = await UserCrud.get_users(skip, limit, db)
-    return {'users': users}
+    return await UserCrud(db).get_users(skip, limit)
 
 
 @users.get('/{user_id}', response_model=User)
 async def retrieve_user(user_id: int, db: Session = Depends(get_db)):
-    user = await UserCrud.get_user_by_id(user_id, db)
+    user = await UserCrud(db).get_user_by_id(user_id)
     return user
+
+
+@users.get('/invitations/')
+async def get_invitations(token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)):
+    user_id = await UserCrud(db).authenticate(token)
+    invitations = await UserCrud(db).get_invitations(user_id)
+    return invitations
 
 @users.post('/')
 async def sign_up(user: UserSignUp, db: AsyncSession = Depends(get_db)):
-    user = await UserCrud.create_user(user, db)
+    user = await UserCrud(db).create_user(user)
     if user is not None:
+
         await db.commit()
+        return user
     else:
         await db.rollback()
         raise HTTPException
@@ -62,8 +72,8 @@ async def edit_user(
         token: str = Depends(token_auth),
         db: Session = Depends(get_db)) -> User:
 
-    await UserCrud.authenticate(token, db)
-    user = await UserCrud.update_user(uid, user_upd, db)
+    await UserCrud(db).authenticate(token)
+    user = await UserCrud(db).update_user(uid, user_upd)
     return user
 
 
@@ -73,7 +83,7 @@ async def delete_user(
         db: AsyncSession = Depends(get_db),
         token: str = Depends(token_auth)):
 
-    await UserCrud.authenticate(token, db)
-    await UserCrud.delete_crud(user_id, db)
+    await UserCrud(db).authenticate(token)
+    await UserCrud(db).delete_crud(user_id)
 
 
