@@ -7,7 +7,6 @@ from .exceptions import (
 import os
 from .utils import encode_password, check_password
 from log import logger
-from sqlalchemy.orm import selectinload
 from .pd_models import UserSignUp, UserUpgrade, UserSignInPass
 from sqlalchemy import select, update, delete, insert
 from .auth import AuthToken, token_decode
@@ -160,25 +159,7 @@ class UserCrud:
 
         return db_user.id
 
-    async def get_invitations(self, u_id: int):
-        # get all invitations
-        stm = select(Invitations.company).options(selectinload(Invitations.company)).where(Invitations.user_id == u_id)
-        invitations = await self.db.execute(stm)
-        invitations = invitations.scalars().all()
-        return invitations
 
-    async def accept_invitation(self, i_id: int):
-        # get invitation
-        stm = select(Invitations).where(Invitations.id == i_id)
-        invitation = await self.db.execute(stm)
-        invitation = invitation.scalars().first()
-        # creating participant
-        stm = insert(Participants).values(company_id=invitation.company_id, participant_id=invitation.user_id)
-        await self.db.execute(stm)
-        # deleting invitation
-        stm = delete(Invitations).where(Invitations.id == i_id)
-        await self.db.execute(stm)
-        return {'status': 'invitation accepted'}
 
 
 

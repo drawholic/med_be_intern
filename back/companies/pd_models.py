@@ -29,4 +29,15 @@ class Company(CompanyBase):
 
     class Config:
         orm_mode = True
+class Request(BaseModel):
+    id: int
+    user_id: int
+    company_id: int
+    updated_at: datetime | None
+    created_at: datetime
+    user: UserCompany
+
+    class Config:
+        orm_mode = True
+
 

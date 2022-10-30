@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from .crud import UserCrud
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .pd_models import User, UserList, UserSignUp, UserUpgrade, UserSignInPass
+from .pd_models import User, UserSignUp, UserUpgrade, UserSignInPass
 from .auth import token_generate
 
 
@@ -34,9 +34,7 @@ async def private(token: str = Depends(token_auth), db: Session = Depends(get_db
     await UserCrud(db).authenticate(token)
 
 
-@users.get('/'
-    # , response_model=list[User]
-           )
+@users.get('/', response_model=list[User])
 async def list_users(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     return await UserCrud(db).get_users(skip, limit)
 
@@ -46,12 +44,6 @@ async def retrieve_user(user_id: int, db: Session = Depends(get_db)):
     user = await UserCrud(db).get_user_by_id(user_id)
     return user
 
-
-@users.get('/invitations/')
-async def get_invitations(token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)):
-    user_id = await UserCrud(db).authenticate(token)
-    invitations = await UserCrud(db).get_invitations(user_id)
-    return invitations
 
 @users.post('/')
 async def sign_up(user: UserSignUp, db: AsyncSession = Depends(get_db)):

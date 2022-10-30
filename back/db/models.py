@@ -24,6 +24,8 @@ class User(BaseModel):
     user_companies = relationship('Owner', back_populates='owner')
     in_companies = relationship('Participants', back_populates='participant')
     invitations = relationship('Invitations', back_populates='user')
+    being_admin = relationship('Admin', back_populates='user')
+    company_requests = relationship('Requests', back_populates='user')
 
 
 class Company(BaseModel):
@@ -32,9 +34,12 @@ class Company(BaseModel):
     title = Column(String, unique=True)
     description = Column(String)
     hidden = Column(Boolean, default=False)
+
     owner = relationship('Owner', back_populates='company')
     participants = relationship('Participants', back_populates='company')
     invited_users = relationship('Invitations', back_populates='company')
+    admins = relationship('Admin', back_populates='company')
+    users_requests = relationship('Requests', back_populates='company')
 
 
 class Owner(BaseModel):
@@ -64,3 +69,23 @@ class Invitations(BaseModel):
 
     user = relationship("User", back_populates='invitations')
     company = relationship('Company', back_populates='invited_users')
+
+
+class Admin(BaseModel):
+    __tablename__ = 'admins'
+
+    company_id = Column(Integer, ForeignKey('companies.id'), primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
+
+    user = relationship('User', back_populates='being_admin')
+    company = relationship('Company', back_populates='admins')
+
+
+class Requests(BaseModel):
+    __tablename__ = 'requests'
+
+    company_id = Column(Integer, ForeignKey('companies.id'), primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
+
+    user = relationship('User', back_populates='company_requests')
+    company = relationship('Company', back_populates='users_requests')

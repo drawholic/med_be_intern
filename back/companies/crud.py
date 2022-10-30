@@ -1,12 +1,10 @@
-from db.models import Company, User, Owner, Invitations, Participants
+from db.models import Company, User, Owner, Invitations, Participants, Admin, Requests
 from sqlalchemy import insert, select, update, join, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from .pd_models import CompanyUpdate
-from .exceptions import CompanyDoesNotExistException
-
-from users.crud import UserCrud
+from .exceptions import CompanyDoesNotExistException, CompanyAlreadyExists
 
 
 class CompanyCrud:
@@ -15,7 +13,7 @@ class CompanyCrud:
         self.db = db
 
     async def list(self):
-        stm = select(Company)
+        stm = select(Company).where(Company.hidden == False)
         c = await self.db.execute(stm)
         c = c.scalars().all()
         return c
@@ -42,7 +40,14 @@ class CompanyCrud:
 
         return c
 
+    async def company_title_exists(self, title):
+        stm = await self.db.execute(select(Company).where(Company.title==title))
+        company = stm.scalars().first()
+        return bool(company)
+
     async def create(self, user_id: int, company) -> Company:
+        if await self.company_title_exists(company.title):
+            raise CompanyAlreadyExists
         stm = insert(Company).values(title=company.title, description=company.description)
         await self.db.execute(stm)
 
@@ -59,22 +64,34 @@ class CompanyCrud:
         await self.db.execute(stm)
         await self.db.commit()
 
-    async def get_admins(self, c_id):
-        pass
-
-    async def get_owner(self, c_id):
+    async def get_owner(self, c_id: int):
         stm = select(Owner).options(selectinload(Owner.owner)).where(Owner.company_id == c_id)
         owner = await self.db.execute(stm)
         return owner.scalars().first().owner
 
-    async def set_admin(self, c_id, u_id):
-        company = await self.retrieve(c_id)
-        user = await UserCrud(self.db).get_user_by_id(u_id)
-        company.admins.append(user)
-        await self.db.commit()
-        return company
+    async def get_requests(self, c_id: int):
+        stm = select(Requests).options(selectinload(Requests.user)).where(Requests.company_id == c_id)
+        stm = await self.db.execute(stm)
+        requests = stm.scalars().all()
+        return requests
 
-    async def get_participants(self, c_id):
+    async def accept_request(self, r_id: int):
+        stm = select(Requests).where(Requests.id == r_id )
+        stm = await self.db.execute(stm)
+        request = stm.scalars().first()
+
+        stm = insert(Participants).values(company_id=request.company_id, participant_id=request.user_id)
+        await self.db.execute(stm)
+        stm = delete(Requests).where(Requests.id == request.id)
+        await self.db.execute(stm)
+        await self.db.commit()
+
+    async def decline_request(self, r_id: int):
+        stm = delete(Requests).where(Requests.id == r_id)
+        await self.db.execute(stm)
+        return {'status': 'request declined'}
+
+    async def get_participants(self, c_id: int):
 
         # getting participants of the company
         stm = select(Participants).options(selectinload(Participants.participant)).where(Participants.company_id == c_id)
@@ -83,10 +100,4 @@ class CompanyCrud:
 
         # returning just users
         return participants.participant
-
-    async def invite(self, c_id: int, u_id: int):
-        # creating an invitation with user and companies id`s
-        stm = insert(Invitations).values(company_id=c_id, user_id=u_id)
-        await self.db.execute(stm)
-        await self.db.commit()
 

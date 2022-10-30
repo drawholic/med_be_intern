@@ -16,7 +16,7 @@ class UserUpgrade(BaseModel):
     @validator('password2')
     def passwords_match(cls, v, values):
         if 'password1' in values and v != values['password1']:
-            raise HTTPException(status_code=400, detail='passwords dont match')
+            raise PasswordMismatchException
         return v
 
 
@@ -47,13 +47,6 @@ class User(UserBase):
 
 class UserAuth(User):
     token: str
-
-
-class UserList(BaseModel):
-    users: list[User] | None = []
-
-    class Config:
-        orm_mode = True
 
 
 

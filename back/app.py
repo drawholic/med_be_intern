@@ -3,10 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from db.db import database, engine, async_session
 from db.models import Base
 import aioredis
-from users.router import users
 from log import logger
-import asyncio
-from companies.router import router
+
+from users.router import users as users_router
+from invitations.router import router as inv_router
+from companies.router import router as comp_router
+from participants.router import router as part_router
+from admins.router import router as admins_router
 
 async def init_models():
     async with engine.begin() as conn:
@@ -26,8 +29,11 @@ app.add_middleware(
 )
 
 
-app.include_router(users)
-app.include_router(router)
+app.include_router(users_router)
+app.include_router(comp_router)
+app.include_router(inv_router)
+app.include_router(part_router)
+app.include_router(admins_router)
 
 
 @app.on_event('startup')
