@@ -7,11 +7,11 @@ from .exceptions import (
 import os
 from .utils import encode_password, check_password
 from log import logger
-from .pd_models import UserSignUp, UserUpgrade, UserSignInPass
+from .pd_models import UserSignUp, UserUpgrade, UserSignInPass 
 from sqlalchemy import select, update, delete, insert
 from .auth import AuthToken, token_decode
 
-from fastapi import HTTPException
+from fastapi import HTTPException 
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,8 +21,7 @@ import dotenv
 dotenv.load_dotenv('.env')
 
 
-salt = os.getenv('SECRET')
-
+salt = os.getenv('SECRET') 
 
 class UserCrud:
 
@@ -69,8 +68,8 @@ class UserCrud:
     async def create_user(self, user: UserSignUp) -> User:
         if await self.check_user_email(user.email):
             raise UserAlreadyExists
-        else:
-            password = encode_password(user.password1)
+        else: 
+            password = encode_password(user.password1) 
             user_db = User(password=password, email=user.email)
 
             self.db.add(user_db)
@@ -113,13 +112,14 @@ class UserCrud:
         logger.info(f'user {user.username} was deleted')
         return user
 
+
     async def get_users(self, skip: int, limit: int) -> list[User]:
-        users = await self.db.execute(select(User).offset(skip).limit(limit+skip))
+        users = await self.db.execute(select(User).offset(skip).limit(limit+skip)) 
         users = users.scalars().all()
 
         logger.info('users were listed')
         return users
-
+ 
     async def isAuth0(self, token: str):
         try:
             token = AuthToken(token.credentials).verify()
@@ -145,7 +145,7 @@ class UserCrud:
             raise AuthenticationException
 
     async def auth_user(self, u: UserSignInPass) -> User:
-        db_user = await self.get_user_by_email(u.email)
+        db_user = await self.get_user_by_email(u.email) 
         
         if db_user is None:
             raise UserDoesNotExist
