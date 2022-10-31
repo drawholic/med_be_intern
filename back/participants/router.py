@@ -28,7 +28,7 @@ async def user_companies(u_id: int, db: AsyncSession = Depends(get_db)):
     return await ParticipantsCrud(db=db).users_companies(u_id=u_id)
 
 
-@router.delete('delete_participant/')
+@router.delete('/delete_participant/')
 async def delete_participant(user_id: int, company_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)):
     await UserCrud(db=db).authenticate(token=token)
     await ParticipantsCrud(db=db).delete_participant(c_id=company_id, u_id=user_id)

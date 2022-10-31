@@ -40,6 +40,7 @@ class Company(BaseModel):
     invited_users = relationship('Invitations', back_populates='company')
     admins = relationship('Admin', back_populates='company')
     users_requests = relationship('Requests', back_populates='company')
+    quizes = relationship("Quiz", back_populates='company')
 
 
 class Owner(BaseModel):
@@ -98,6 +99,9 @@ class Quiz(BaseModel):
     description = Column(String)
     frequency = Column(Integer)
 
+    company_id = Column(Integer, ForeignKey('companies.id'))
+
+    company = relationship('Company', back_populates='quizes')
     questions = relationship('Question', back_populates='quiz')
 
 
