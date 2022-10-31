@@ -32,11 +32,11 @@ async def invite(c_id: int, u_id: int, token: str = Depends(token_auth), db: Asy
 
 
 @router.post('/accept')
-async def accept(i_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)):
+async def accept(inv_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)):
 
     user_id = await UserCrud(db).authenticate(token)
-    invitaion = await InvitationsCrud(db).get_invitations()
-    return await InvitationsCrud(db).accept_invitation(i_id)
+
+    return await InvitationsCrud(db).accept_invitation(user_id, inv_id)
 
 
 @router.delete('/decline/{i_id}')
