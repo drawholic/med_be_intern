@@ -17,12 +17,12 @@ token_auth = HTTPBearer()
 
 
 @users.post('/get_token') 
-async def get_token(user_auth: UserSignInPass, db = Depends(get_db)):
-    user = await UserCrud(db).auth_user(user_auth) 
+async def get_token(user_auth: UserSignInPass, db=Depends(get_db)) -> str:
+    user = await UserCrud(db=db).auth_user(u=user_auth)
     
     if user is not None:
         
-        token = token_generate(user.email) 
+        token = token_generate(payload=user.email)
         return token 
     else:
         raise HTTPException(status_code=400, detail='authentication error')
@@ -30,23 +30,23 @@ async def get_token(user_auth: UserSignInPass, db = Depends(get_db)):
  
 @users.get('/private')
 async def private(token: str = Depends(token_auth), db: Session = Depends(get_db)):
+    await UserCrud(db=db).authenticate(token=token)
 
-    await UserCrud(db).authenticate(token) 
 
 @users.get('/', response_model=list[User])
 async def list_users(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    return await UserCrud(db).get_users(skip, limit) 
+    return await UserCrud(db).get_users(skip=skip, limit=limit)
 
 
 @users.get('/{user_id}', response_model=User)
 async def retrieve_user(user_id: int, db: Session = Depends(get_db)):
-    user = await UserCrud(db).get_user_by_id(user_id)
+    user = await UserCrud(db=db).get_user_by_id(uid=user_id)
     return user
 
 
 @users.post('/')
 async def sign_up(user: UserSignUp, db: AsyncSession = Depends(get_db)):
-    user = await UserCrud(db).create_user(user)
+    user = await UserCrud(db=db).create_user(user=user)
     if user is not None:
 
         await db.commit()
@@ -56,15 +56,15 @@ async def sign_up(user: UserSignUp, db: AsyncSession = Depends(get_db)):
         raise HTTPException
 
 
-@users.patch('/{uid}')
+@users.patch('/{uid}', response_model=User)
 async def edit_user(
         uid: int,
         user_upd: UserUpgrade,
         token: str = Depends(token_auth),
         db: Session = Depends(get_db)) -> User:
 
-    await UserCrud(db).authenticate(token)
-    user = await UserCrud(db).update_user(uid, user_upd)
+    await UserCrud(db=db).authenticate(token=token)
+    user = await UserCrud(db=db).update_user(uid=uid, user_data=user_upd)
     return user 
 
 
@@ -74,7 +74,7 @@ async def delete_user(
         db: AsyncSession = Depends(get_db),
         token: str = Depends(token_auth)):
 
-    await UserCrud(db).authenticate(token)
-    await UserCrud(db).delete_crud(user_id) 
+    await UserCrud(db=db).authenticate(token=token)
+    await UserCrud(db=db).delete_crud(uid=user_id)
 
 

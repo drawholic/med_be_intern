@@ -19,7 +19,7 @@ class CompanyCrud:
         return c
 
     async def update(self, c_id: int, company: CompanyUpdate):
-        c = await self.retrieve(c_id)
+        c = await self.retrieve(c_id=c_id)
         if c is None:
             raise CompanyDoesNotExistException
         stm = update(Company).where(Company.id == c_id).values(**company.dict(exclude_unset=True))
@@ -41,12 +41,12 @@ class CompanyCrud:
         return c
 
     async def company_title_exists(self, title):
-        stm = await self.db.execute(select(Company).where(Company.title==title))
+        stm = await self.db.execute(select(Company).where(Company.title == title))
         company = stm.scalars().first()
         return bool(company)
 
     async def create(self, user_id: int, company) -> Company:
-        if await self.company_title_exists(company.title):
+        if await self.company_title_exists(title=company.title):
             raise CompanyAlreadyExists
         stm = insert(Company).values(title=company.title, description=company.description)
         await self.db.execute(stm)
@@ -57,9 +57,10 @@ class CompanyCrud:
         await self.db.commit()
         return company
 
-    async def delete(self, c_id: int):
-        stm = delete(Owner).where(Owner.company_id==c_id)
+    async def delete(self, c_id: int) -> None:
+        stm = delete(Owner).where(Owner.company_id == c_id)
         await self.db.execute(stm)
+
         stm = delete(Company).where(Company.id == c_id)
         await self.db.execute(stm)
         await self.db.commit()
@@ -89,7 +90,6 @@ class CompanyCrud:
     async def decline_request(self, r_id: int):
         stm = delete(Requests).where(Requests.id == r_id)
         await self.db.execute(stm)
-        return {'status': 'request declined'}
 
     async def get_participants(self, c_id: int):
 

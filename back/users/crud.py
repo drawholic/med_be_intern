@@ -23,6 +23,7 @@ dotenv.load_dotenv('.env')
 
 salt = os.getenv('SECRET') 
 
+
 class UserCrud:
 
     def __init__(self, db: AsyncSession):
@@ -40,7 +41,7 @@ class UserCrud:
         )
 
     async def get_user_by_email(self, email: str) -> User:
-        user = await self.user_query_email(email)
+        user = await self.user_query_email(email=email)
         user = user.scalars().first()
         if user is not None:
             return user
@@ -48,7 +49,7 @@ class UserCrud:
             raise UserDoesNotExist
 
     async def get_user_by_id(self, uid: int) -> User:
-        user = await self.user_query_id(uid)
+        user = await self.user_query_id(uid=uid)
         user = user.scalars().first()
         if user is not None:
             return user
@@ -66,10 +67,10 @@ class UserCrud:
         return bool(user)
 
     async def create_user(self, user: UserSignUp) -> User:
-        if await self.check_user_email(user.email):
+        if await self.check_user_email(email=user.email):
             raise UserAlreadyExists
         else: 
-            password = encode_password(user.password1) 
+            password = encode_password(password=user.password1)
             user_db = User(password=password, email=user.email)
 
             self.db.add(user_db)
@@ -87,14 +88,14 @@ class UserCrud:
                 del user_data['password1']
                 del user_data['password2']
             
-            u = update(User).where(User.id==uid)
+            u = update(User).where(User.id == uid)
             u = u.values(**user_data)
             u.execution_options(synchronize_session='fetch')
             
             await self.db.execute(u)
             await self.db.commit()
 
-            user = await self.get_user_by_id(uid)
+            user = await self.get_user_by_id(uid=uid)
             logger.info(f'user {user.username} updated')
             
             return user
@@ -103,7 +104,7 @@ class UserCrud:
             raise UserDoesNotExist
 
     async def delete_crud(self, uid: int) -> User:
-        user = await self.get_user_by_id(uid)
+        user = await self.get_user_by_id(uid=uid)
         user_delete = delete(User).where(User.id == uid)
         
         await self.db.execute(user_delete)
@@ -111,7 +112,6 @@ class UserCrud:
          
         logger.info(f'user {user.username} was deleted')
         return user
-
 
     async def get_users(self, skip: int, limit: int) -> list[User]:
         users = await self.db.execute(select(User).offset(skip).limit(limit+skip)) 
@@ -133,29 +133,29 @@ class UserCrud:
 
     async def authenticate(self, token: str) -> User:
 
-        if await self.isAuth0(token):
-            email = AuthToken(token.credentials).verify()['email']
+        if await self.isAuth0(token=token):
+            email = AuthToken(token.credentials).verify().get('email')
             user = await self.get_user_by_email(email)
             return user.id
 
-        elif await self.isToken(token):
-            user = await self.auth_user_token(token)
+        elif await self.isToken(token=token):
+            user = await self.auth_user_token(token=token)
             return user
         else:
             raise AuthenticationException
 
     async def auth_user(self, u: UserSignInPass) -> User:
-        db_user = await self.get_user_by_email(u.email) 
+        db_user = await self.get_user_by_email(email=u.email)
         
         if db_user is None:
             raise UserDoesNotExist
         
-        if check_password(u.password, db_user.password):
+        if check_password(password=u.password, user_password=db_user.password):
             return db_user
 
     async def auth_user_token(self, token: str) -> bool:
-        email = token_decode(token)
-        db_user = await self.get_user_by_email(email)
+        email = token_decode(token=token)
+        db_user = await self.get_user_by_email(email=email)
 
         return db_user.id
 

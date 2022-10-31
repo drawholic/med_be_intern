@@ -89,3 +89,33 @@ class Requests(BaseModel):
 
     user = relationship('User', back_populates='company_requests')
     company = relationship('Company', back_populates='users_requests')
+
+
+class Quiz(BaseModel):
+    __tablename__ = 'quizes'
+
+    title = Column(String)
+    description = Column(String)
+    frequency = Column(Integer)
+
+    questions = relationship('Question', back_populates='quiz')
+
+
+class Question(BaseModel):
+    __tablename__ = 'questions'
+
+    text = Column(String)
+    quiz_id = Column(Integer, ForeignKey('quizes.id'))
+
+    quiz = relationship('Quiz', back_populates='questions')
+    answers = relationship('Answer', back_populates='question')
+
+
+class Answer(BaseModel):
+    __tablename__ = 'answers'
+
+    question_id = Column(Integer, ForeignKey('questions.id'))
+
+    question = relationship('Question', back_populates='answers')
+    text = Column(String)
+    correct = Column(Boolean, default=False)

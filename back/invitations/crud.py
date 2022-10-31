@@ -26,7 +26,7 @@ class InvitationsCrud:
 
         return invitations
 
-    async def accept_invitation(self,auth_user:int, inv_id: int):
+    async def accept_invitation(self, auth_user: int, inv_id: int):
 
         # get invitation
         stm = select(Invitations).where(Invitations.id == inv_id)
@@ -42,14 +42,12 @@ class InvitationsCrud:
         stm = delete(Invitations).where(Invitations.id == inv_id)
         await self.db.execute(stm)
         await self.db.commit()
-        return {'status': 'invitation accepted'}
 
     async def decline_invitation(self, i_id: int):
 
         stm = delete(Invitations).where(Invitations.id == i_id)
         await self.db.execute(stm)
         await self.db.commit()
-        return {'status': 'Invitation declined'}
 
     async def invite(self, auth_user:int, c_id: int, u_id: int):
         # creating an invitation with user and companies id`s
