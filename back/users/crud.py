@@ -66,17 +66,15 @@ class UserCrud:
         user = user.scalars().first()
         return bool(user)
 
-    async def create_user(self, user: UserSignUp) -> User:
+    async def create_user(self, user: UserSignUp):
         if await self.check_user_email(email=user.email):
             raise UserAlreadyExists
         else: 
             password = encode_password(password=user.password1)
-            user_db = User(password=password, email=user.email)
-
-            self.db.add(user_db)
-
+            stm = insert(User).returning(User).values(password=password, email=user.email)
+            result = await self.db.execute(stm)
             logger.info(f'user {user.email} is created')
-            return user_db
+            return result.fetchone()
 
     async def update_user(self, uid: int, user_data: UserUpgrade) -> User:
        
@@ -114,7 +112,7 @@ class UserCrud:
         return user
 
     async def get_users(self, skip: int, limit: int) -> list[User]:
-        users = await self.db.execute(select(User).offset(skip).limit(limit+skip)) 
+        users = await self.db.execute(select(User).offset(skip).limit(limit))
         users = users.scalars().all()
 
         logger.info('users were listed')

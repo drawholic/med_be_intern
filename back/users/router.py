@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Response,  Depends, HTTPException, status
 from fastapi.security import HTTPBearer
-import hashlib
 from db.db import get_db
 from sqlalchemy.orm import Session
 from .crud import UserCrud
@@ -44,16 +43,16 @@ async def retrieve_user(user_id: int, db: Session = Depends(get_db)):
     return user
 
 
-@users.post('/')
+@users.post('/', response_model=User)
 async def sign_up(user: UserSignUp, db: AsyncSession = Depends(get_db)):
     user = await UserCrud(db=db).create_user(user=user)
-    if user is not None:
 
+    if user is not None:
         await db.commit()
         return user
     else:
         await db.rollback()
-        raise HTTPException
+        raise HTTPException(statuse_code=400, detail='Creation error')
 
 
 @users.patch('/{uid}', response_model=User)
