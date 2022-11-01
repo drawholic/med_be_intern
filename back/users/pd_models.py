@@ -1,7 +1,7 @@
 from pydantic import BaseModel, validator, EmailStr
 from .exceptions import PasswordMismatchException
 from fastapi import HTTPException
-
+from datetime import datetime
 
 class UserBase(BaseModel):
     email: EmailStr    
@@ -16,16 +16,12 @@ class UserUpgrade(BaseModel):
     @validator('password2')
     def passwords_match(cls, v, values):
         if 'password1' in values and v != values['password1']:
-            raise HTTPException(status_code=400, detail='passwords dont match')
+            raise PasswordMismatchException
         return v
 
 
 class UserSignInPass(UserBase):
     password: str
-
-
-class UserSignInToken(BaseModel):
-    token: str
 
 
 class UserSignUp(UserBase):
@@ -42,6 +38,8 @@ class UserSignUp(UserBase):
 class User(UserBase):
     id: int
     username: str | None
+    created_at: datetime
+    updated_at: datetime | None
 
     class Config:
         orm_mode = True
@@ -49,13 +47,6 @@ class User(UserBase):
 
 class UserAuth(User):
     token: str
-
-
-class UserList(BaseModel):
-    users: list[User] | None = []
-
-    class Config:
-        orm_mode = True
 
 
 

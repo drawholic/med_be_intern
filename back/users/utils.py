@@ -1,16 +1,22 @@
+
+import os
+from dotenv import load_dotenv 
 import jwt
 
-def encode_password(password, secret):
-    password = jwt.encode({'payload':password}, secret, algorithm='HS256')
-    return str(password)
+def check_password(password, user_password):
+    load_dotenv()
+    secret = os.getenv('SECRET')
+    decode = jwt.decode(user_password, secret, algorithms=['HS256'])['payload']
+    return decode==password
+
+
+def encode_password(password):
+    load_dotenv()
+    secret = os.getenv('SECRET')
+    return jwt.encode({'payload':password}, secret, algorithm='HS256')
 
 
 def decode_password(password, secret):
     password = jwt.decode(password, secret, algorithms=['HS256'])
     return password['payload']
 
-
-def check_password(password1, password2, secret):
-    password1 = decode_password(password1, secret)
-    print(password1, password2)
-    return password1 == password2
