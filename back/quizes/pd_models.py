@@ -1,11 +1,12 @@
 from pydantic import BaseModel, validator
 from datetime import datetime
-from .exceptions import AnswersQuantityException
+from .exceptions import AnswersQuantityException, QuestionsQuantityException
 
 
 class AnswerBase(BaseModel):
     text: str
     question_id: int
+    correct: bool
 
 class AnswerCreate(AnswerBase):
     pass
@@ -23,8 +24,7 @@ class QuestionBase(BaseModel):
     quiz_id: int
 
 class QuestionCreate(QuestionBase):
-    pass
-
+    answers: list[AnswerCreate]
 class Question(QuestionBase):
     id: int
     created_at: datetime
@@ -33,17 +33,8 @@ class Question(QuestionBase):
     class Config:
         orm_mode = True
 
-class QuestionDetail(QuestionBase):
+class QuestionDetail(Question):
     answers: list[Answer] | None = []
-
-
-    @validator('answers')
-    def answers_quantity(cls, v, values):
-        quantity = None
-        if v in values:
-            quantity = len(v)
-        if quantity < 2 or quantity > 6:
-            raise AnswersQuantityException
 
     class Config:
         orm_mode = True
@@ -56,7 +47,7 @@ class QuizBase(BaseModel):
     frequency: int
 
 class QuizCreate(QuizBase):
-    pass
+    questions: list[QuestionCreate]
 
 class Quiz(QuizBase):
     id: int

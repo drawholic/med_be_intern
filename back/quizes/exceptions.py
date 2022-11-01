@@ -8,4 +8,9 @@ class AuthorizationException(HTTPException):
 
 class AnswersQuantityException(HTTPException):
     def __init__(self):
-        super().__init__(status_code=400, detail='There must be not less 2 or more than 6 answers')
+        super().__init__(status_code=400, detail='There must be not less than 2 answers')
+
+
+class QuestionsQuantityException(HTTPException):
+    def __init__(self):
+        super().__init__(status_code=400, detail='There must be not less than 2 questions')

@@ -118,8 +118,8 @@ class Question(BaseModel):
 class Answer(BaseModel):
     __tablename__ = 'answers'
 
+    text = Column(String)
+    correct = Column(Boolean, default=False)
     question_id = Column(Integer, ForeignKey('questions.id'))
 
     question = relationship('Question', back_populates='answers')
-    text = Column(String)
-    correct = Column(Boolean, default=False)
