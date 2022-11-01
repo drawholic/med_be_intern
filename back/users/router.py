@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Response,  Depends, HTTPException, status
 from fastapi.security import HTTPBearer
+import status
 
 from db.models import User
 from db.db import get_db
@@ -18,7 +19,7 @@ users = APIRouter(prefix='/users', tags=['Users'])
 token_auth = HTTPBearer()
 
 
-@users.post('/get_token') 
+@users.post('/get_token', status_code=status.HTTP_202_ACCEPTED)
 async def get_token(user_auth: UserSignInPass, db: AsyncSession = Depends(get_db)) -> str:
     user = await UserCrud(db=db).auth_user(u=user_auth)
     
@@ -30,7 +31,7 @@ async def get_token(user_auth: UserSignInPass, db: AsyncSession = Depends(get_db
         raise HTTPException(status_code=400, detail='authentication error')
 
  
-@users.get('/private')
+@users.get('/private', status_code=status.HTTP_202_ACCEPTED)
 async def private(token: str = Depends(token_auth), db: Session = Depends(get_db)):
     await UserCrud(db=db).authenticate(token=token)
 
@@ -46,7 +47,7 @@ async def retrieve_user(user_id: int, db: Session = Depends(get_db)) -> User:
     return user
 
 
-@users.post('/')
+@users.post('/', status_code=status.HTTP_201_CREATED)
 async def sign_up(user: UserSignUp, db: AsyncSession = Depends(get_db)):
     user = await UserCrud(db=db).create_user(user=user)
     if user is not None:
@@ -70,7 +71,7 @@ async def edit_user(
     return user 
 
 
-@users.delete('/{user_id}')
+@users.delete('/{user_id}', status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user( 
         user_id: int,
         db: AsyncSession = Depends(get_db),

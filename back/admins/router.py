@@ -1,4 +1,4 @@
-from fastapi import Depends, APIRouter
+from fastapi import Depends, APIRouter, status
 from fastapi.security import HTTPBearer
 from users.crud import UserCrud
 from .crud import AdminCrud
@@ -18,7 +18,7 @@ async def get_admins(company_id: int,
     return await AdminCrud(db=db).get_admins(c_id=company_id)
 
 
-@router.post('/set/', status_code=204)
+@router.post('/set/', status_code=status.HTTP_204_NO_CONTENT)
 async def set_admin(user_id: int,
                     company_id: int,
                     token: str = Depends(token_auth),
@@ -28,7 +28,7 @@ async def set_admin(user_id: int,
     await AdminCrud(db=db).set_admin(u_id=user_id, c_id=company_id)
 
 
-@router.delete('/unset/')
+@router.delete('/unset/', status_code=status.HTTP_204_NO_CONTENT)
 async def unset_admin(user_id: int,
                       company_id: int,
                       token: str = Depends(token_auth),
