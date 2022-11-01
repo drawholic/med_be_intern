@@ -15,17 +15,17 @@ token_auth = HTTPBearer()
 @router.get('', response_model=list[Admin])
 async def get_admins(company_id: int,
                      db: AsyncSession = Depends(get_db)):
-    return await AdminCrud(db).get_admins(company_id)
+    return await AdminCrud(db=db).get_admins(c_id=company_id)
 
 
-@router.post('/set/')
+@router.post('/set/', status_code=204)
 async def set_admin(user_id: int,
                     company_id: int,
                     token: str = Depends(token_auth),
                     db: AsyncSession = Depends(get_db)):
 
-    await UserCrud(db).authenticate(token)
-    await AdminCrud(db).set_admin(user_id, company_id)
+    await UserCrud(db=db).authenticate(token=token)
+    await AdminCrud(db=db).set_admin(u_id=user_id, c_id=company_id)
 
 
 @router.delete('/unset/')
@@ -34,5 +34,5 @@ async def unset_admin(user_id: int,
                       token: str = Depends(token_auth),
                       db: AsyncSession = Depends(get_db)):
 
-    await UserCrud(db).authenticate(token)
-    await AdminCrud(db).unset_admin(user_id, company_id)
+    await UserCrud(db=db).authenticate(token=token)
+    await AdminCrud(db=db).unset_admin(u_id=user_id, c_id=company_id)

@@ -14,9 +14,7 @@ router = APIRouter(prefix='/invitations', tags=['Invitations'])
 token_auth = HTTPBearer()
 
 
-@router.get(''
-    # , response_model=list[Invitation]
-            )
+@router.get('' , response_model=list[Invitation])
 async def get_invitations(token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)):
     user_id = await UserCrud(db).authenticate(token)
     invitations = await InvitationsCrud(db).get_invitations(user_id)
@@ -24,25 +22,25 @@ async def get_invitations(token: str = Depends(token_auth), db: AsyncSession = D
 
 
 @router.post('')
-async def invite(c_id: int, u_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)):
+async def invite(c_id: int, u_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)) -> None:
     user_id = await UserCrud(db).authenticate(token)
     if user_id == u_id:
         raise SelfInvitationException
     await InvitationsCrud(db).invite(c_id, u_id)
 
 
-@router.post('/accept')
-async def accept(inv_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)):
+@router.post('/accept', status_code=204)
+async def accept(inv_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)) -> None:
 
     user_id = await UserCrud(db).authenticate(token)
 
-    return await InvitationsCrud(db).accept_invitation(user_id, inv_id)
+    await InvitationsCrud(db).accept_invitation(user_id, inv_id)
 
 
-@router.delete('/decline/{i_id}')
-async def decline(i_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)):
+@router.delete('/decline/{i_id}', status_code=204)
+async def decline(i_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)) -> None:
     await UserCrud(db).authenticate(token)
-    return await InvitationsCrud(db).decline_invitation(i_id)
+    await InvitationsCrud(db).decline_invitation(i_id)
 
 
 

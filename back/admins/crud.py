@@ -9,7 +9,7 @@ class AdminCrud:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_admins(self, c_id: int):
+    async def get_admins(self, c_id: int) -> list[Admin]:
         stm = select(Admin).options(selectinload(Admin.user)).where(Admin.company_id == c_id)
         companies = await self.db.execute(stm)
         companies = companies.scalars().all()

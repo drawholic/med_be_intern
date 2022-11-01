@@ -23,24 +23,25 @@ dotenv.load_dotenv('.env')
 
 salt = os.getenv('SECRET') 
 
+
 class UserCrud:
 
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def user_query_id(self, uid: int) -> Callable:
+    async def user_query_id(self, uid: int):
         return await self.db.execute(
             select(User)
             .where(User.id == uid))
 
-    async def user_query_email(self, email: str) -> Callable:
+    async def user_query_email(self, email: str):
         return await self.db.execute(
             select(User)
             .where(User.email == email)
         )
 
     async def get_user_by_email(self, email: str) -> User:
-        user = await self.user_query_email(email)
+        user = await self.user_query_email(email=email)
         user = user.scalars().first()
         if user is not None:
             return user
@@ -48,7 +49,7 @@ class UserCrud:
             raise UserDoesNotExist
 
     async def get_user_by_id(self, uid: int) -> User:
-        user = await self.user_query_id(uid)
+        user = await self.user_query_id(uid=uid)
         user = user.scalars().first()
         if user is not None:
             return user
@@ -56,30 +57,29 @@ class UserCrud:
             raise UserDoesNotExist
 
     async def check_user_id(self, uid: int) -> bool:
-        user = await self.db.execute(select(User).where(User.id==uid))
+        user = await self.db.execute(select(User).where(User.id == uid))
         user = user.scalars().first()
         return bool(user)
 
     async def check_user_email(self, email: str) -> bool:
-        user = await self.db.execute(select(User).where(User.email==email))
+        user = await self.db.execute(select(User).where(User.email == email))
         user = user.scalars().first()
         return bool(user)
 
-    async def create_user(self, user: UserSignUp) -> User:
-        if await self.check_user_email(user.email):
+    async def create_user(self, user: UserSignUp) -> None:
+        if await self.check_user_email(email=user.email):
             raise UserAlreadyExists
         else: 
-            password = encode_password(user.password1) 
-            user_db = User(password=password, email=user.email)
-
-            self.db.add(user_db)
+            password = encode_password(user.password1)
+            stm = insert(User).values(password=password, email=user.email)
+            await self.db.execute(stm)
+            await self.db.commit()
 
             logger.info(f'user {user.email} is created')
-            return user_db
 
     async def update_user(self, uid: int, user_data: UserUpgrade) -> User:
        
-        if await self.check_user_id(uid):
+        if await self.check_user_id(uid=uid):
             user_data = user_data.dict(exclude_unset=True)
             
             if 'password1' in user_data.keys():
@@ -94,7 +94,7 @@ class UserCrud:
             await self.db.execute(u)
             await self.db.commit()
 
-            user = await self.get_user_by_id(uid)
+            user = await self.get_user_by_id(uid=uid)
             logger.info(f'user {user.username} updated')
             
             return user
@@ -114,48 +114,48 @@ class UserCrud:
 
 
     async def get_users(self, skip: int, limit: int) -> list[User]:
-        users = await self.db.execute(select(User).offset(skip).limit(limit+skip)) 
+        users = await self.db.execute(select(User).offset(skip).limit(limit))
         users = users.scalars().all()
 
         logger.info('users were listed')
         return users
  
-    async def isAuth0(self, token: str):
+    async def isAuth0(self, token: str) -> bool:
         try:
             token = AuthToken(token.credentials).verify()
             return not token.get('status')
         except HTTPException:
             return False
 
-    async def isToken(self, token):
-        email = token_decode(token)
+    async def isToken(self, token) -> bool:
+        email = token_decode(token=token)
         return bool(email)
 
     async def authenticate(self, token: str) -> User:
 
-        if await self.isAuth0(token):
-            email = AuthToken(token.credentials).verify()['email']
-            user = await self.get_user_by_email(email)
+        if await self.isAuth0(token=token):
+            email = AuthToken(token.credentials).verify().get('email')
+            user = await self.get_user_by_email(email=email)
             return user.id
 
-        elif await self.isToken(token):
-            user = await self.auth_user_token(token)
+        elif await self.isToken(token=token):
+            user = await self.auth_user_token(token=token)
             return user
         else:
             raise AuthenticationException
 
     async def auth_user(self, u: UserSignInPass) -> User:
-        db_user = await self.get_user_by_email(u.email) 
+        db_user = await self.get_user_by_email(email=u.email)
         
         if db_user is None:
             raise UserDoesNotExist
         
-        if check_password(u.password, db_user.password):
+        if check_password(password=u.password, user_password=db_user.password):
             return db_user
 
     async def auth_user_token(self, token: str) -> bool:
-        email = token_decode(token)
-        db_user = await self.get_user_by_email(email)
+        email = token_decode(token=token)
+        db_user = await self.get_user_by_email(email=email)
 
         return db_user.id
 
