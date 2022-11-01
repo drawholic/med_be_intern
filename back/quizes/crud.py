@@ -19,13 +19,7 @@ class QuizCrud:
         quiz = stm.scalars().all()
         return quiz
 
-    async def update_quiz(self, user_id: int, quiz_id:int, quiz_update: QuizUpdate):
-        quiz = await self.get_quiz(q_id=quiz_id)
-        if not await self.is_admin(user_id=user_id, company_id=quiz.company_id) or await self.is_owner(user_id=user_id, company_id=quiz.company_id):
-            raise AuthorizationException
-        stm = update(Quiz).values(**quiz_update.dict(exclude_unset=True)).where(Quiz.id == quiz_id)
-        await self.db.execute(stm)
-        await self.db.commit()
+
 
     async def get_quizes(self, c_id: int, skip:int, limit: int) -> list[Quiz]:
         stm = select(Quiz).options(selectinload(Quiz.questions)).where(Quiz.company_id == c_id).offset(skip).limit(limit)
@@ -70,7 +64,6 @@ class QuizCrud:
     async def create_quiz(self, user_id: int,  quiz: QuizCreate):
         if not await self.is_owner(user_id=user_id, company_id=quiz.company_id) or await self.is_admin(user_id=user_id, company_id=quiz.company_id):
             raise AuthorizationException
-        # print(quiz)
         quiz = quiz.dict()
         questions = quiz.pop('questions')
 
@@ -80,5 +73,32 @@ class QuizCrud:
         for question in questions:
             await self.create_question(quiz_id=quiz_id, question=question)
 
+    async def update_quiz(self, user_id: int, quiz_id:int, quiz_update: QuizUpdate):
+        quiz = await self.get_quiz(q_id=quiz_id)
+        if not await self.is_admin(user_id=user_id, company_id=quiz.company_id) or await self.is_owner(user_id=user_id, company_id=quiz.company_id):
+            raise AuthorizationException
+        stm = update(Quiz).values(**quiz_update.dict(exclude_unset=True)).where(Quiz.id == quiz_id)
+        await self.db.execute(stm)
+        await self.db.commit()
 
+    async def delete_quiz(self, user_id: int, quiz_id: int):
+        quiz = await self.get_quiz(q_id=quiz_id)
+        if not await self.is_owner(user_id=user_id, company_id=quiz.company_id) or await self.is_admin(user_id=user_id, company_id=quiz.company_id):
+            raise AuthorizationException
 
+    async def delete_questions(self, quiz_id: int):
+        stm = select(Question).where(Question.quiz_id == quiz_id)
+        stm = await self.db.execute(stm)
+        questions = stm.scalars().all()
+
+        for question in questions:
+            await self.delete_answers(question_id=question.id)
+
+        stm = delete(Question).where(Question.quiz_id == quiz_id)
+        await self.db.execute(stm)
+        await self.db.commit()
+
+    async def delete_answers(self, question_id: int):
+        stm = delete(Answer).where(Answer.question_id == question_id)
+        await self.db.execute(stm)
+        await self.db.commit()

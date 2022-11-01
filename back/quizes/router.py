@@ -41,3 +41,9 @@ async def create_quiz(quiz: QuizCreate, token: str = Depends(auth_token), db: As
 async def create_question(question: QuestionCreate, token: str = Depends(auth_token), db: AsyncSession = Depends(get_db)):
     user = await UserCrud(db).authenticate(token)
     await QuizCrud(db).create_question(user_id=user, question=question)
+
+
+@router.delete('/quiz/{quiz_id}', status_code=status.HTTP_204_NO_CONTENT)
+async def delete_quiz(quiz_id: int, token: str = Depends(auth_token), db: AsyncSession = Depends(get_db)):
+    curr_user = await UserCrud(db).authenticate(token)
+    await QuizCrud(db).delete_quiz(user_id=curr_user, quiz_id=quiz_id)
