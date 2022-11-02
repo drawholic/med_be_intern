@@ -11,7 +11,7 @@ class InvitationsCrud:
     def __init__(self, db):
         self.db = db
 
-    async def check_invitation(self, c_id:int, u_id: int):
+    async def check_invitation(self, c_id:int, u_id: int) -> Invitations:
         stm = select(Invitations).where(Invitations.company_id == c_id, Invitations.user_id == u_id)
         inv = await self.db.execute(stm)
         inv = inv.scalars().first()
@@ -25,8 +25,8 @@ class InvitationsCrud:
         invitations = invitations.scalars().all()
 
         return invitations
-
-    async def accept_invitation(self, auth_user: int, inv_id: int):
+ 
+    async def accept_invitation(self,auth_user:int, inv_id: int) -> None: 
 
         # get invitation
         stm = select(Invitations).where(Invitations.id == inv_id)
@@ -49,13 +49,13 @@ class InvitationsCrud:
         await self.db.execute(stm)
         await self.db.commit()
 
-    async def invite(self, auth_user:int, c_id: int, u_id: int):
+    async def invite(self, auth_user:int, c_id: int, u_id: int) -> None:
         # creating an invitation with user and companies id`s
         stm = select(Owner).where(Owner.company_id==c_id)
         stm = await self.db.execute(stm)
         own = stm.scalars().first()
 
-        if await self.check_invitation(c_id, u_id) is not None:
+        if await self.check_invitation(c_id=c_id, u_id=u_id) is not None:
             raise AlreadyInvitedException
             #checking if authenticated user is owner of company
         if not own.user_id == auth_user:

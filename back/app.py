@@ -53,7 +53,6 @@ async def startup():
 @app.on_event('shutdown')
 async def shutdown():
     logger.info('server is stopping, connection to db is closing...')
-    await database.disconnect()
     
 
 @app.get('/')

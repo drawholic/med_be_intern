@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from fastapi.security import HTTPBearer
 
 from db.db import get_db
@@ -13,35 +13,35 @@ router = APIRouter(prefix='/invitations', tags=['Invitations'])
 
 token_auth = HTTPBearer()
 
-
-@router.get('', response_model=list[Invitation])
+ 
+@router.get('', response_model=list[Invitation]) 
 async def get_invitations(token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)):
     user_id = await UserCrud(db=db).authenticate(token=token)
     invitations = await InvitationsCrud(db=db).get_invitations(u_id=user_id)
     return invitations
 
-
-@router.post('')
-async def invite(c_id: int, u_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)):
+ 
+@router.post('', status_code=status.HTTP_201_CREATED)
+async def invite(c_id: int, u_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)) -> None:
     user_id = await UserCrud(db=db).authenticate(token=token)
+    
     if user_id == u_id:
         raise SelfInvitationException
     await InvitationsCrud(db=db).invite(c_id=c_id, u_id=u_id)
 
 
-@router.post('/accept')
-async def accept(inv_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)):
+@router.post('/accept', status_code=status.HTTP_201_CREATED)
+async def accept(inv_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)) -> None:
 
     user_id = await UserCrud(db).authenticate(token)
-
+ 
     await InvitationsCrud(db=db).accept_invitation(auth_user=user_id, inv_id=inv_id)
 
-
-@router.delete('/decline/{i_id}')
-async def decline(i_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)):
-    await UserCrud(db=db).authenticate(token=token)
-    await InvitationsCrud(db=db).decline_invitation(i_id=i_id)
-
+ 
+@router.delete('/decline/{i_id}', status_code=status.HTTP_204_NO_CONTENT)
+async def decline(i_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)) -> None:
+    await UserCrud(db).authenticate(token)
+    await InvitationsCrud(db=db).decline_invitation(i_id=i_id) 
 
 
 
