@@ -16,7 +16,7 @@ router = APIRouter(prefix='/company', tags=['Companies'])
 token_auth = HTTPBearer()
 
 
-@router.post('', response_model=Company)
+@router.post('', response_model=Company, status_code=status.HTTP_201_CREATED)
 async def create_company(company: CompanyCreate, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)) -> Company:
     user = await UserCrud(db=db).authenticate(token=token)
     return await CompanyCrud(db=db).create(user_id=user, company=company)
@@ -27,22 +27,23 @@ async def list_companies(db: AsyncSession = Depends(get_db)) -> list[Company]:
     return await CompanyCrud(db=db).list()
 
 
-@router.get('/requests/list/{c_id}', response_model = list[Request])
+@router.get('/requests/list/{c_id}', response_model=list[Request])
 async def get_requests(company_id: int,
                        token: str = Depends(token_auth),
                        db: AsyncSession = Depends(get_db)) -> list[Request]:
     await UserCrud(db=db).authenticate(token=token)
     return await CompanyCrud(db=db).get_requests(c_id=company_id)
 
+ 
+@router.post('/requests/accept', status_code=status.HTTP_201_CREATED)
 
-@router.post('/requests/accept', responses={204: {'status': "Request Accepted"}})
 async def accept_request(request_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)):
     await UserCrud(db=db).authenticate(token=token)
     await CompanyCrud(db=db).accept_request(r_id=request_id)
     return JSONResponse(status_code=204, content={'detail': 'Request Accepted'})
 
-
-@router.delete('/requests/decline/{request_id}', responses={204: {'detail': 'Request Declined'}})
+ 
+@router.delete('/requests/decline/{request_id}', status_code=status.HTTP_204_NO_CONTENT) 
 async def decline_request(request_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)):
     await UserCrud(db=db).authenticate(token=token)
     await CompanyCrud(db=db).decline_request(r_id=request_id)
@@ -62,7 +63,7 @@ async def update_company(c_id: int, company: CompanyUpdate, token: str = Depends
     return await CompanyCrud(db=db).retrieve(c_id=c_id)
 
 
-@router.delete('/delete/{c_id}', status_code=204)
+@router.delete('/delete/{c_id}', status_code=status.HTTP_204_NO_CONTENT)
 async def delete_company(c_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)):
     await UserCrud(db=db).authenticate(token=token)
     await CompanyCrud(db=db).delete(c_id=c_id)

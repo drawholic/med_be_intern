@@ -29,12 +29,12 @@ class UserCrud:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def user_query_id(self, uid: int) -> Callable:
+    async def user_query_id(self, uid: int):
         return await self.db.execute(
             select(User)
             .where(User.id == uid))
 
-    async def user_query_email(self, email: str) -> Callable:
+    async def user_query_email(self, email: str):
         return await self.db.execute(
             select(User)
             .where(User.email == email)
@@ -57,16 +57,17 @@ class UserCrud:
             raise UserDoesNotExist
 
     async def check_user_id(self, uid: int) -> bool:
-        user = await self.db.execute(select(User).where(User.id==uid))
+        user = await self.db.execute(select(User).where(User.id == uid))
         user = user.scalars().first()
         return bool(user)
 
     async def check_user_email(self, email: str) -> bool:
-        user = await self.db.execute(select(User).where(User.email==email))
+        user = await self.db.execute(select(User).where(User.email == email))
         user = user.scalars().first()
         return bool(user)
 
-    async def create_user(self, user: UserSignUp):
+
+    async def create_user(self, user: UserSignUp) -> None:
         if await self.check_user_email(email=user.email):
             raise UserAlreadyExists
         else: 
@@ -74,11 +75,11 @@ class UserCrud:
             stm = insert(User).returning(User).values(password=password, email=user.email)
             result = await self.db.execute(stm)
             logger.info(f'user {user.email} is created')
-            return result.fetchone()
+            return result.fetchone() 
 
     async def update_user(self, uid: int, user_data: UserUpgrade) -> User:
        
-        if await self.check_user_id(uid):
+        if await self.check_user_id(uid=uid):
             user_data = user_data.dict(exclude_unset=True)
             
             if 'password1' in user_data.keys():
@@ -118,22 +119,22 @@ class UserCrud:
         logger.info('users were listed')
         return users
  
-    async def isAuth0(self, token: str):
+    async def isAuth0(self, token: str) -> bool:
         try:
             token = AuthToken(token.credentials).verify()
             return not token.get('status')
         except HTTPException:
             return False
 
-    async def isToken(self, token):
-        email = token_decode(token)
+    async def isToken(self, token) -> bool:
+        email = token_decode(token=token)
         return bool(email)
 
     async def authenticate(self, token: str) -> User:
 
         if await self.isAuth0(token=token):
-            email = AuthToken(token.credentials).verify().get('email')
-            user = await self.get_user_by_email(email)
+            email = AuthToken(token.credentials).verify().get('email') 
+            user = await self.get_user_by_email(email=email) 
             return user.id
 
         elif await self.isToken(token=token):
