@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Integer, ForeignKey, Boolean, String, Column, DateTime
+from sqlalchemy import Integer, ForeignKey, Boolean, String, Column, DateTime, Float
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
@@ -123,3 +123,13 @@ class Answer(BaseModel):
     question_id = Column(Integer, ForeignKey('questions.id'))
 
     question = relationship('Question', back_populates='answers')
+
+
+class Results(BaseModel):
+    __tablename__ = 'results'
+
+    user_id = Column(Integer, ForeignKey('users.id'))
+    company_id = Column(Integer, ForeignKey('companies.id'))
+    quiz_id = Column(Integer, ForeignKey("quizes.id"))
+
+    result = Column(Float)

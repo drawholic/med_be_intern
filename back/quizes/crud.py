@@ -111,3 +111,6 @@ class QuizCrud:
         stm = delete(Answer).where(Answer.question_id == question_id)
         await self.db.execute(stm)
         await self.db.commit()
+    async def get_answers(self, queston_id: int):
+    async def quiz_testing(self, user_answers, quiz_id: int):
+        answers = select(Answer).where(Answer. )
