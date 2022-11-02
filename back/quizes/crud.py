@@ -12,14 +12,17 @@ class QuizCrud:
     def __init__(self, db):
         self.db = db
 
-    async def get_quiz(self, q_id: int):
+    async def get_quiz_detail(self, q_id: int):
 
         stm = select(Question).options(selectinload(Question.answers)).where(Question.quiz_id == q_id)
         stm = await self.db.execute(stm)
         quiz = stm.scalars().all()
         return quiz
 
-
+    async def get_quiz(self, q_id: int):
+        stm = select(Quiz).where(Quiz.id == q_id)
+        stm = await self.db.execute(stm)
+        return stm.scalars().first()
 
     async def get_quizes(self, c_id: int, skip:int, limit: int) -> list[Quiz]:
         stm = select(Quiz).options(selectinload(Quiz.questions)).where(Quiz.company_id == c_id).offset(skip).limit(limit)
@@ -85,6 +88,12 @@ class QuizCrud:
         quiz = await self.get_quiz(q_id=quiz_id)
         if not await self.is_owner(user_id=user_id, company_id=quiz.company_id) or await self.is_admin(user_id=user_id, company_id=quiz.company_id):
             raise AuthorizationException
+
+        await self.delete_questions(quiz_id=quiz_id)
+        stm = delete(Quiz).where(Quiz.id == quiz_id)
+
+        await self.db.execute(stm)
+        await self.db.commit()
 
     async def delete_questions(self, quiz_id: int):
         stm = select(Question).where(Question.quiz_id == quiz_id)

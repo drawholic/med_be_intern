@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status
 from fastapi.security import HTTPBearer
 
 from db.db import get_db
-from .pd_models import QuizCreate, QuestionCreate, Quiz , QuestionDetail, QuizUpdate
+from .pd_models import QuizCreate, QuestionCreate, Quiz, QuestionDetail, QuizUpdate
 
 from .crud import QuizCrud
 from users.crud import UserCrud
@@ -17,7 +17,7 @@ auth_token = HTTPBearer()
 
 @router.get('/retrieve/{q_id}', response_model=list[QuestionDetail])
 async def get_quiz(q_id: int, db: AsyncSession = Depends(get_db)):
-    return await QuizCrud(db).get_quiz(q_id=q_id)
+    return await QuizCrud(db).get_quiz_detail(q_id=q_id)
 
 
 @router.patch('/update/{quiz_id}', status_code=status.HTTP_204_NO_CONTENT)
