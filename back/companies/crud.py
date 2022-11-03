@@ -3,6 +3,7 @@ from sqlalchemy import insert, select, update, join, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from typing import List
 from .pd_models import CompanyUpdate
 from .exceptions import CompanyDoesNotExistException, CompanyAlreadyExists
 
@@ -39,6 +40,7 @@ class CompanyCrud:
             raise CompanyDoesNotExistException
 
         return c 
+
     async def company_title_exists(self, title) -> bool:
         stm = await self.db.execute(select(Company).where(Company.title==title)) 
         company = stm.scalars().first()
@@ -69,7 +71,7 @@ class CompanyCrud:
         owner = await self.db.execute(stm)
         return owner.scalars().first().owner
 
-    async def get_requests(self, c_id: int) -> list[Requests]:
+    async def get_requests(self, c_id: int) -> List[Requests]:
         stm = select(Requests).options(selectinload(Requests.user)).where(Requests.company_id == c_id)
         stm = await self.db.execute(stm)
         requests = stm.scalars().all()
@@ -90,7 +92,7 @@ class CompanyCrud:
         stm = delete(Requests).where(Requests.id == r_id)
         await self.db.execute(stm)
 
-    async def get_participants(self, c_id: int) -> list[User]:
+    async def get_participants(self, c_id: int) -> List[User]:
 
         # getting participants of the company
         stm = select(Participants).options(selectinload(Participants.participant)).where(Participants.company_id == c_id)

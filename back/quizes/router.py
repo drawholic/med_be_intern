@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status
 from fastapi.security import HTTPBearer
 
 from db.db import get_db
-from .pd_models import QuizCreate, QuestionCreate, Quiz, QuestionDetail, QuizUpdate
+from .pd_models import QuizCreate,UserAnswers, QuestionCreate, Quiz, QuestionDetail, QuizUpdate
 
 from .crud import QuizCrud
 from users.crud import UserCrud
@@ -13,6 +13,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 router = APIRouter(prefix='/quiz', tags=['Quiz'])
 
 auth_token = HTTPBearer()
+
+
+@router.post('/user_quiz/{quiz_id}')
+async def take_quiz(quiz_id: int, answers: UserAnswers, token: str = Depends(auth_token), db: AsyncSession = Depends(get_db)):
+    user_id = await UserCrud(db=db).authenticate(token=token)
+    result = await QuizCrud(db).quiz_testing(quiz_id=quiz_id, user_id=user_id, answers=user_answers)
 
 
 @router.get('/retrieve/{q_id}', response_model=list[QuestionDetail])

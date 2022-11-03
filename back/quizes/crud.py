@@ -1,5 +1,5 @@
 from db.models import Quiz, Answer, Question, Owner, Admin
-from .pd_models import QuizCreate, QuestionCreate, AnswerCreate, QuizUpdate
+from .pd_models import QuizCreate, QuestionCreate, AnswerCreate, QuizUpdate, UserAnswers
 
 from sqlalchemy import select, delete, insert, update
 from sqlalchemy.orm import selectinload
@@ -12,14 +12,14 @@ class QuizCrud:
     def __init__(self, db):
         self.db = db
 
-    async def get_quiz_detail(self, q_id: int):
+    async def get_quiz_detail(self, q_id: int) -> list[Question]:
 
         stm = select(Question).options(selectinload(Question.answers)).where(Question.quiz_id == q_id)
         stm = await self.db.execute(stm)
         quiz = stm.scalars().all()
         return quiz
 
-    async def get_quiz(self, q_id: int):
+    async def get_quiz(self, q_id: int) -> Quiz:
         stm = select(Quiz).where(Quiz.id == q_id)
         stm = await self.db.execute(stm)
         return stm.scalars().first()
@@ -111,6 +111,29 @@ class QuizCrud:
         stm = delete(Answer).where(Answer.question_id == question_id)
         await self.db.execute(stm)
         await self.db.commit()
-    async def get_answers(self, queston_id: int):
-    async def quiz_testing(self, user_answers, quiz_id: int):
-        answers = select(Answer).where(Answer. )
+
+    async def get_answers(self, question_id: int) -> list[Answer]:
+        stm = select(Answer).where(Answer.question_id == question_id)
+        stm = await self.db.execute(stm)
+        return stm.scalars().all()
+
+    async def quiz_testing(self, user_id: int, user_answers: UserAnswers, quiz_id: int) -> float:
+        quiz = await self.get_quiz(q_id=quiz_id)
+        questions = await self.get_quiz_detail(q_id=quiz_id)
+        questions_length = len(questions)
+        res = 0
+        answers = []
+
+        for question in questions:
+            answers += question.answers.copy()
+
+        correct_answers = list(filter(lambda answer: answer.correct, answers))
+        correct_answers_ids = [answer.id for answer in correct_answers]
+
+        for answer in user_answers.answers:
+            if answer.answer_id in correct_answers_ids:
+                res += 1
+        res = round(res * 10 / questions_length, 2)
+        return res
+
+
