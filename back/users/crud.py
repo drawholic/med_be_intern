@@ -66,7 +66,7 @@ class UserCrud:
         user = user.scalars().first()
         return bool(user)
 
-    async def create_user(self, user: UserSignUp) -> None:
+    async def create_user(self, user: UserSignUp) -> User:
         if await self.check_user_email(email=user.email):
             raise UserAlreadyExists
         else: 
@@ -74,7 +74,7 @@ class UserCrud:
             stm = insert(User).returning(User).values(password=password, email=user.email)
             result = await self.db.execute(stm)
             logger.info(f'user {user.email} is created')
-            return result.fetchone() 
+            return result
 
     async def update_user(self, uid: int, user_data: UserUpgrade) -> User:
        

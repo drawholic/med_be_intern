@@ -1,4 +1,4 @@
-from fastapi import Depends, APIRouter, status
+from fastapi import Depends, APIRouter, status, HTTPException
 from fastapi.security import HTTPBearer
 from users.crud import UserCrud
 from .crud import AdminCrud
