@@ -135,12 +135,31 @@ class QuizCrud:
         correct_answers = list(filter(lambda answer: answer.correct, answers))
         correct_answers_ids = [answer.id for answer in correct_answers]
 
-        for answer in user_answers.answers:
-            if answer.answer_id in correct_answers_ids:
+        user_answers = [answer.answer_id for answer in user_answers.answers]
+        for answer in user_answers:
+            if answer in correct_answers_ids:
                 res += 1
         res = round(res * 10 / questions_length, 2)
         await self.save_result(quiz_id=quiz.id, result=res, user_id=user_id, company_id=quiz.company_id)
-        return {'result': res}
+        redis_data = await self.convert_for_redis(user_answers)
+        redis_data = {'quiz_id':quiz_id, 'questions': redis_data}
+        return res, redis_data
+
+    async def get_answer(self, answer_id: int):
+        stm = select(Answer).where(Answer.id == answer_id)
+        stm = await self.db.execute(stm)
+        answer = stm.scalars().first()
+        answer = {
+            "question_id": answer.question_id,
+            "answer_id": answer.id
+        }
+        return answer
+
+    async def convert_for_redis(self, answers_ids: list[int]):
+        answers = []
+        for answer_id in answers_ids:
+            answers.append(await self.get_answer(answer_id))
+        return answers
 
 
 
