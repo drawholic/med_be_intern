@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Response,  Depends, HTTPException, status
-from fastapi.security import HTTPBearer 
-import status
+from fastapi.security import HTTPBearer
 
 from db.models import User 
 from db.db import get_db
@@ -36,18 +35,18 @@ async def private(token: str = Depends(token_auth), db: Session = Depends(get_db
     await UserCrud(db=db).authenticate(token=token)
 
  
-@users.get('/', response_model=list[User])
+@users.get('/', response_model=list[UserPD])
 async def list_users(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     return await UserCrud(db).get_users(skip=skip, limit=limit)
 
 
-@users.get('/{user_id}', response_model=User)
+@users.get('/{user_id}', response_model=UserPD)
 async def retrieve_user(user_id: int, db: Session = Depends(get_db)): 
     user = await UserCrud(db=db).get_user_by_id(uid=user_id)
     return user
 
  
-@users.post('/', response_model=User)
+@users.post('/', response_model=UserPD)
 async def sign_up(user: UserSignUp, db: AsyncSession = Depends(get_db)):
     user = await UserCrud(db=db).create_user(user=user) 
 
@@ -58,7 +57,7 @@ async def sign_up(user: UserSignUp, db: AsyncSession = Depends(get_db)):
         await db.rollback()
         raise HTTPException(statuse_code=400, detail='Creation error')
  
-@users.patch('/{uid}', response_model=User) 
+@users.patch('/{uid}', response_model=UserPD)
 async def edit_user(
         uid: int,
         user_upd: UserUpgrade,

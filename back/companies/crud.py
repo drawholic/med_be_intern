@@ -5,7 +5,7 @@ from sqlalchemy.orm import selectinload
 
 from .pd_models import CompanyUpdate
 from .exceptions import CompanyDoesNotExistException, CompanyAlreadyExists
-
+from typing import List
 
 class CompanyCrud:
 
@@ -38,8 +38,9 @@ class CompanyCrud:
         if c is None:
             raise CompanyDoesNotExistException
 
-        return c 
-    async def company_title_exists(self, title) -> bool:
+        return c
+
+    async def company_title_exists(self, title: str) -> bool:
         stm = await self.db.execute(select(Company).where(Company.title==title)) 
         company = stm.scalars().first()
         return bool(company)
@@ -69,7 +70,7 @@ class CompanyCrud:
         owner = await self.db.execute(stm)
         return owner.scalars().first().owner
 
-    async def get_requests(self, c_id: int) -> list[Requests]:
+    async def get_requests(self, c_id: int) -> List[Requests]:
         stm = select(Requests).options(selectinload(Requests.user)).where(Requests.company_id == c_id)
         stm = await self.db.execute(stm)
         requests = stm.scalars().all()
@@ -90,7 +91,7 @@ class CompanyCrud:
         stm = delete(Requests).where(Requests.id == r_id)
         await self.db.execute(stm)
 
-    async def get_participants(self, c_id: int) -> list[User]:
+    async def get_participants(self, c_id: int) -> List[User]:
 
         # getting participants of the company
         stm = select(Participants).options(selectinload(Participants.participant)).where(Participants.company_id == c_id)

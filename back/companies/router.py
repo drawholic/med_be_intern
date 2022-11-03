@@ -36,7 +36,6 @@ async def get_requests(company_id: int,
 
  
 @router.post('/requests/accept', status_code=status.HTTP_201_CREATED)
-
 async def accept_request(request_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)):
     await UserCrud(db=db).authenticate(token=token)
     await CompanyCrud(db=db).accept_request(r_id=request_id)
@@ -64,7 +63,7 @@ async def update_company(c_id: int, company: CompanyUpdate, token: str = Depends
 
 
 @router.delete('/delete/{c_id}', status_code=status.HTTP_204_NO_CONTENT)
-async def delete_company(c_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)):
+async def delete_company(c_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)) -> HTTPException:
     await UserCrud(db=db).authenticate(token=token)
     await CompanyCrud(db=db).delete(c_id=c_id)
 
