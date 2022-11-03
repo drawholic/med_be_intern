@@ -90,10 +90,12 @@ class QuizDetail(Quiz):
 
 
 class UserAnswer(BaseModel):
-    question_id: int
     answer_id: int
 
 class UserAnswers(BaseModel):
     answers: list[UserAnswer]
+
+class UserResult(BaseModel):
+    result: float
 
 

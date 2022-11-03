@@ -1,4 +1,4 @@
-from db.models import Quiz, Answer, Question, Owner, Admin
+from db.models import Quiz, Answer, Question, Owner, Admin, Results
 from .pd_models import QuizCreate, QuestionCreate, AnswerCreate, QuizUpdate, UserAnswers
 
 from sqlalchemy import select, delete, insert, update
@@ -117,7 +117,12 @@ class QuizCrud:
         stm = await self.db.execute(stm)
         return stm.scalars().all()
 
-    async def quiz_testing(self, user_id: int, user_answers: UserAnswers, quiz_id: int) -> float:
+    async def save_result(self, quiz_id: int, result: float, company_id: int, user_id: int):
+        stm = insert(Results).values(quiz_id=quiz_id, result=result, company_id=company_id, user_id=user_id)
+        await self.db.execute(stm)
+        await self.db.commit()
+
+    async def quiz_testing(self, user_id: int, user_answers: UserAnswers, quiz_id: int):
         quiz = await self.get_quiz(q_id=quiz_id)
         questions = await self.get_quiz_detail(q_id=quiz_id)
         questions_length = len(questions)
@@ -134,6 +139,8 @@ class QuizCrud:
             if answer.answer_id in correct_answers_ids:
                 res += 1
         res = round(res * 10 / questions_length, 2)
-        return res
+        await self.save_result(quiz_id=quiz.id, result=res, user_id=user_id, company_id=quiz.company_id)
+        return {'result': res}
+
 
 

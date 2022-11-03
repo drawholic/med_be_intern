@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from db.db import database, engine, async_session
+from db.db import engine
 from db.models import Base
 import aioredis
 from log import logger
@@ -11,7 +11,7 @@ from companies.router import router as comp_router
 from participants.router import router as part_router
 from admins.router import router as admins_router
 from quizes.router import router as quiz_router
-
+from analytics.router import router as analytics_router
 
 async def init_models():
     async with engine.begin() as conn:
@@ -36,6 +36,7 @@ app.include_router(inv_router)
 app.include_router(part_router)
 app.include_router(admins_router)
 app.include_router(quiz_router)
+app.include_router(analytics_router)
 
 
 @app.on_event('startup')
@@ -45,15 +46,13 @@ async def startup():
 
     logger.info('SERVER STARTED')
     redis = await aioredis.from_url('redis://localhost')
-    # some actions with redis in future    
-    
-    await redis.close()
+    await redis.set('info', 'hello')
 
 
 @app.on_event('shutdown')
 async def shutdown():
     logger.info('server is stopping, connection to db is closing...')
-    
+
 
 @app.get('/')
 def index():
