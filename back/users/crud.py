@@ -29,12 +29,12 @@ class UserCrud:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def user_query_id(self, uid: int):
+    async def user_query_id(self, uid: int) -> User:
         return await self.db.execute(
             select(User)
             .where(User.id == uid))
 
-    async def user_query_email(self, email: str):
+    async def user_query_email(self, email: str) -> User:
         return await self.db.execute(
             select(User)
             .where(User.email == email)
@@ -65,7 +65,6 @@ class UserCrud:
         user = await self.db.execute(select(User).where(User.email == email))
         user = user.scalars().first()
         return bool(user)
-
 
     async def create_user(self, user: UserSignUp) -> None:
         if await self.check_user_email(email=user.email):
@@ -152,7 +151,7 @@ class UserCrud:
         if check_password(password=u.password, user_password=db_user.password):
             return db_user
 
-    async def auth_user_token(self, token: str) -> bool:
+    async def auth_user_token(self, token: str) -> int:
         email = token_decode(token=token)
         db_user = await self.get_user_by_email(email=email)
 

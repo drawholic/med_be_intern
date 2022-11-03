@@ -7,6 +7,7 @@ from .pd_models import CompanyUpdate
 from .exceptions import CompanyDoesNotExistException, CompanyAlreadyExists
 from typing import List
 
+
 class CompanyCrud:
 
     def __init__(self, db: AsyncSession):
@@ -18,7 +19,7 @@ class CompanyCrud:
         c = c.scalars().all()
         return c
  
-    async def update(self, c_id: int, company: CompanyUpdate) -> None: 
+    async def update(self, c_id: int, company: CompanyUpdate):
         c = await self.retrieve(c_id=c_id)
         if c is None:
             raise CompanyDoesNotExistException
@@ -57,7 +58,7 @@ class CompanyCrud:
         await self.db.commit()
         return company
 
-    async def delete(self, c_id: int) -> None: 
+    async def delete(self, c_id: int):
         stm = delete(Owner).where(Owner.company_id == c_id) 
         await self.db.execute(stm)
 
@@ -76,7 +77,7 @@ class CompanyCrud:
         requests = stm.scalars().all()
         return requests
 
-    async def accept_request(self, r_id: int) -> None:
+    async def accept_request(self, r_id: int):
         stm = select(Requests).where(Requests.id == r_id )
         stm = await self.db.execute(stm)
         request = stm.scalars().first()
@@ -87,7 +88,7 @@ class CompanyCrud:
         await self.db.execute(stm)
         await self.db.commit()
 
-    async def decline_request(self, r_id: int) -> None:
+    async def decline_request(self, r_id: int):
         stm = delete(Requests).where(Requests.id == r_id)
         await self.db.execute(stm)
 

@@ -12,14 +12,14 @@ class QuizCrud:
     def __init__(self, db):
         self.db = db
 
-    async def get_quiz_detail(self, q_id: int):
+    async def get_quiz_detail(self, q_id: int) -> Question:
 
         stm = select(Question).options(selectinload(Question.answers)).where(Question.quiz_id == q_id)
         stm = await self.db.execute(stm)
         quiz = stm.scalars().all()
         return quiz
 
-    async def get_quiz(self, q_id: int):
+    async def get_quiz(self, q_id: int) -> Quiz:
         stm = select(Quiz).where(Quiz.id == q_id)
         stm = await self.db.execute(stm)
         return stm.scalars().first()
@@ -46,12 +46,12 @@ class QuizCrud:
         owner = stm.scalars().first()
         return owner.owner_id == user_id
 
-    async def create_answer(self, question_id: int, answer: AnswerCreate) -> None:
+    async def create_answer(self, question_id: int, answer: AnswerCreate):
         stm = insert(Answer).values(**answer, question_id=question_id)
         await self.db.execute(stm)
         await self.db.commit()
 
-    async def create_question(self, quiz_id: int, question: QuestionCreate) -> None:
+    async def create_question(self, quiz_id: int, question: QuestionCreate):
         answers = question.pop('answers')
 
         stm = insert(Question).returning(Question.id).values(quiz_id=quiz_id, **question)

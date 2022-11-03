@@ -22,7 +22,7 @@ async def get_admins(company_id: int,
 async def set_admin(user_id: int,
                     company_id: int,
                     token: str = Depends(token_auth),
-                    db: AsyncSession = Depends(get_db)):
+                    db: AsyncSession = Depends(get_db)) -> HTTPException:
 
     await UserCrud(db=db).authenticate(token=token)
     await AdminCrud(db=db).set_admin(u_id=user_id, c_id=company_id)
@@ -32,7 +32,7 @@ async def set_admin(user_id: int,
 async def unset_admin(user_id: int,
                       company_id: int,
                       token: str = Depends(token_auth),
-                      db: AsyncSession = Depends(get_db)):
+                      db: AsyncSession = Depends(get_db)) -> HTTPException:
 
     await UserCrud(db=db).authenticate(token=token)
     await AdminCrud(db=db).unset_admin(u_id=user_id, c_id=company_id)

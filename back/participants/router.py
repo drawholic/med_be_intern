@@ -14,8 +14,7 @@ router = APIRouter(prefix='/participants', tags=['participants'])
 
 token_auth = HTTPBearer()
 
- 
- 
+
 @router.get('/{c_id}', response_model=list[ParticipantUser])
 async def company_participants(c_id: int, db: AsyncSession = Depends(get_db)) -> list[Participants]:
     return await ParticipantsCrud(db=db).company_participants(c_id=c_id)

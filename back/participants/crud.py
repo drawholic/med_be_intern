@@ -7,7 +7,7 @@ class ParticipantsCrud:
     def __init__(self, db):
         self.db = db
 
-    async def request(self, c_id: int, u_id: int) -> None:
+    async def request(self, c_id: int, u_id: int):
         stm = insert(Requests).values(user_id=u_id, company_id=c_id)
         await self.db.execute(stm)
         await self.db.commit()
@@ -24,7 +24,7 @@ class ParticipantsCrud:
         companies = companies.scalars().all()
         return companies
 
-    async def delete_participant(self, c_id: int, u_id: int) -> None: 
+    async def delete_participant(self, c_id: int, u_id: int):
         stm = delete(Participants).where(Participants.company_id==c_id, Participants.participant_id==u_id) 
         await self.db.execute(stm)
         await self.db.commit()
