@@ -11,8 +11,8 @@ class QuizCrud:
 
     def __init__(self, db):
         self.db = db
-
-    async def get_quiz_detail(self, q_id: int) -> list[Question]:
+ 
+    async def get_quiz_detail(self, q_id: int) -> list[Question]: 
 
         stm = select(Question).options(selectinload(Question.answers)).where(Question.quiz_id == q_id)
         stm = await self.db.execute(stm)
@@ -46,12 +46,12 @@ class QuizCrud:
         owner = stm.scalars().first()
         return owner.owner_id == user_id
 
-    async def create_answer(self, question_id: int, answer: AnswerCreate) -> None:
+    async def create_answer(self, question_id: int, answer: AnswerCreate):
         stm = insert(Answer).values(**answer, question_id=question_id)
         await self.db.execute(stm)
         await self.db.commit()
 
-    async def create_question(self, quiz_id: int, question: QuestionCreate) -> None:
+    async def create_question(self, quiz_id: int, question: QuestionCreate):
         answers = question.pop('answers')
 
         stm = insert(Question).returning(Question.id).values(quiz_id=quiz_id, **question.dict())
@@ -111,7 +111,7 @@ class QuizCrud:
         stm = delete(Answer).where(Answer.question_id == question_id)
         await self.db.execute(stm)
         await self.db.commit()
-
+        
     async def get_answers(self, question_id: int) -> list[Answer]:
         stm = select(Answer).where(Answer.question_id == question_id)
         stm = await self.db.execute(stm)
@@ -161,5 +161,4 @@ class QuizCrud:
             answers.append(await self.get_answer(answer_id))
         return answers
 
-
-
+ 
