@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Integer, ForeignKey, Boolean, String, Column, DateTime
+from sqlalchemy import Integer, ForeignKey, Boolean, String, Column, DateTime, Float
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
@@ -40,6 +40,7 @@ class Company(BaseModel):
     invited_users = relationship('Invitations', back_populates='company')
     admins = relationship('Admin', back_populates='company')
     users_requests = relationship('Requests', back_populates='company')
+    quizes = relationship("Quiz", back_populates='company')
 
 
 class Owner(BaseModel):
@@ -89,3 +90,46 @@ class Requests(BaseModel):
 
     user = relationship('User', back_populates='company_requests')
     company = relationship('Company', back_populates='users_requests')
+
+
+class Quiz(BaseModel):
+    __tablename__ = 'quizes'
+
+    title = Column(String)
+    description = Column(String)
+    frequency = Column(Integer)
+
+    company_id = Column(Integer, ForeignKey('companies.id'))
+
+    company = relationship('Company', back_populates='quizes')
+    questions = relationship('Question', back_populates='quiz')
+
+
+class Question(BaseModel):
+    __tablename__ = 'questions'
+
+    text = Column(String)
+    quiz_id = Column(Integer, ForeignKey('quizes.id'))
+
+    quiz = relationship('Quiz', back_populates='questions')
+    answers = relationship('Answer', back_populates='question')
+
+
+class Answer(BaseModel):
+    __tablename__ = 'answers'
+
+    text = Column(String)
+    correct = Column(Boolean, default=False)
+    question_id = Column(Integer, ForeignKey('questions.id'))
+
+    question = relationship('Question', back_populates='answers')
+
+
+class Results(BaseModel):
+    __tablename__ = 'results'
+
+    user_id = Column(Integer, ForeignKey('users.id'))
+    company_id = Column(Integer, ForeignKey('companies.id'))
+    quiz_id = Column(Integer, ForeignKey("quizes.id"))
+
+    result = Column(Float)

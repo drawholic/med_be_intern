@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Response,  Depends, HTTPException, status
 from fastapi.security import HTTPBearer
-import status
 
-from db.models import User
+from db.models import User 
 from db.db import get_db
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,9 +17,9 @@ users = APIRouter(prefix='/users', tags=['Users'])
 
 token_auth = HTTPBearer()
 
-
+ 
 @users.post('/get_token', status_code=status.HTTP_202_ACCEPTED)
-async def get_token(user_auth: UserSignInPass, db: AsyncSession = Depends(get_db)) -> str:
+async def get_token(user_auth: UserSignInPass, db: AsyncSession = Depends(get_db)) -> str: 
     user = await UserCrud(db=db).auth_user(u=user_auth)
     
     if user is not None:
@@ -32,33 +31,32 @@ async def get_token(user_auth: UserSignInPass, db: AsyncSession = Depends(get_db
 
  
 @users.get('/private', status_code=status.HTTP_202_ACCEPTED)
-async def private(token: str = Depends(token_auth), db: Session = Depends(get_db)):
+async def private(token: str = Depends(token_auth), db: Session = Depends(get_db)) -> HTTPException:
     await UserCrud(db=db).authenticate(token=token)
 
-
+ 
 @users.get('/', response_model=list[UserPD])
-async def list_users(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)) -> list[User]:
-    return await UserCrud(db=db).get_users(skip=skip, limit=limit)
+async def list_users(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    return await UserCrud(db).get_users(skip=skip, limit=limit)
 
 
 @users.get('/{user_id}', response_model=UserPD)
-async def retrieve_user(user_id: int, db: Session = Depends(get_db)) -> User:
+async def retrieve_user(user_id: int, db: Session = Depends(get_db)): 
     user = await UserCrud(db=db).get_user_by_id(uid=user_id)
     return user
 
-
-@users.post('/', status_code=status.HTTP_201_CREATED)
+ 
+@users.post('/', response_model=UserPD)
 async def sign_up(user: UserSignUp, db: AsyncSession = Depends(get_db)):
-    user = await UserCrud(db=db).create_user(user=user)
-    if user is not None:
+    user = await UserCrud(db=db).create_user(user=user) 
 
+    if user is not None:
         await db.commit()
         return user
     else:
         await db.rollback()
-        raise HTTPException
-
-
+        raise HTTPException(statuse_code=400, detail='Creation error')
+ 
 @users.patch('/{uid}', response_model=UserPD)
 async def edit_user(
         uid: int,
@@ -75,7 +73,7 @@ async def edit_user(
 async def delete_user( 
         user_id: int,
         db: AsyncSession = Depends(get_db),
-        token: str = Depends(token_auth)) -> None:
+        token: str = Depends(token_auth)) -> HTTPException:
 
     await UserCrud(db=db).authenticate(token=token)
     await UserCrud(db=db).delete_crud(uid=user_id)

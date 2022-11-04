@@ -29,12 +29,12 @@ class UserCrud:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def user_query_id(self, uid: int):
+    async def user_query_id(self, uid: int) -> User:
         return await self.db.execute(
             select(User)
             .where(User.id == uid))
 
-    async def user_query_email(self, email: str):
+    async def user_query_email(self, email: str) -> User:
         return await self.db.execute(
             select(User)
             .where(User.email == email)
@@ -66,16 +66,15 @@ class UserCrud:
         user = user.scalars().first()
         return bool(user)
 
-    async def create_user(self, user: UserSignUp) -> None:
+    async def create_user(self, user: UserSignUp) -> User:
         if await self.check_user_email(email=user.email):
             raise UserAlreadyExists
         else: 
-            password = encode_password(user.password1)
-            stm = insert(User).values(password=password, email=user.email)
-            await self.db.execute(stm)
-            await self.db.commit()
-
+            password = encode_password(password=user.password1)
+            stm = insert(User).returning(User).values(password=password, email=user.email)
+            result = await self.db.execute(stm)
             logger.info(f'user {user.email} is created')
+            return result
 
     async def update_user(self, uid: int, user_data: UserUpgrade) -> User:
        
@@ -87,7 +86,7 @@ class UserCrud:
                 del user_data['password1']
                 del user_data['password2']
             
-            u = update(User).where(User.id==uid)
+            u = update(User).where(User.id == uid)
             u = u.values(**user_data)
             u.execution_options(synchronize_session='fetch')
             
@@ -103,7 +102,7 @@ class UserCrud:
             raise UserDoesNotExist
 
     async def delete_crud(self, uid: int) -> User:
-        user = await self.get_user_by_id(uid)
+        user = await self.get_user_by_id(uid=uid)
         user_delete = delete(User).where(User.id == uid)
         
         await self.db.execute(user_delete)
@@ -111,7 +110,6 @@ class UserCrud:
          
         logger.info(f'user {user.username} was deleted')
         return user
-
 
     async def get_users(self, skip: int, limit: int) -> list[User]:
         users = await self.db.execute(select(User).offset(skip).limit(limit))
@@ -134,8 +132,8 @@ class UserCrud:
     async def authenticate(self, token: str) -> User:
 
         if await self.isAuth0(token=token):
-            email = AuthToken(token.credentials).verify().get('email')
-            user = await self.get_user_by_email(email=email)
+            email = AuthToken(token.credentials).verify().get('email') 
+            user = await self.get_user_by_email(email=email) 
             return user.id
 
         elif await self.isToken(token=token):
@@ -153,7 +151,7 @@ class UserCrud:
         if check_password(password=u.password, user_password=db_user.password):
             return db_user
 
-    async def auth_user_token(self, token: str) -> bool:
+    async def auth_user_token(self, token: str) -> int:
         email = token_decode(token=token)
         db_user = await self.get_user_by_email(email=email)
 

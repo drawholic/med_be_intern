@@ -5,6 +5,7 @@ from sqlalchemy.orm import selectinload
 
 from .pd_models import CompanyUpdate
 from .exceptions import CompanyDoesNotExistException, CompanyAlreadyExists
+from typing import List
 
 
 class CompanyCrud:
@@ -17,8 +18,8 @@ class CompanyCrud:
         c = await self.db.execute(stm)
         c = c.scalars().all()
         return c
-
-    async def update(self, c_id: int, company: CompanyUpdate) -> None:
+ 
+    async def update(self, c_id: int, company: CompanyUpdate):
         c = await self.retrieve(c_id=c_id)
         if c is None:
             raise CompanyDoesNotExistException
@@ -40,13 +41,13 @@ class CompanyCrud:
 
         return c
 
-    async def company_title_exists(self, title) -> bool:
-        stm = await self.db.execute(select(Company).where(Company.title==title))
+    async def company_title_exists(self, title: str) -> bool:
+        stm = await self.db.execute(select(Company).where(Company.title==title)) 
         company = stm.scalars().first()
         return bool(company)
 
     async def create(self, user_id: int, company) -> Company:
-        if await self.company_title_exists(company.title):
+        if await self.company_title_exists(title=company.title):
             raise CompanyAlreadyExists
         stm = insert(Company).values(title=company.title, description=company.description)
         await self.db.execute(stm)
@@ -57,9 +58,10 @@ class CompanyCrud:
         await self.db.commit()
         return company
 
-    async def delete(self, c_id: int) -> None:
-        stm = delete(Owner).where(Owner.company_id==c_id)
+    async def delete(self, c_id: int):
+        stm = delete(Owner).where(Owner.company_id == c_id) 
         await self.db.execute(stm)
+
         stm = delete(Company).where(Company.id == c_id)
         await self.db.execute(stm)
         await self.db.commit()
@@ -69,13 +71,13 @@ class CompanyCrud:
         owner = await self.db.execute(stm)
         return owner.scalars().first().owner
 
-    async def get_requests(self, c_id: int) -> list[Requests]:
+    async def get_requests(self, c_id: int) -> List[Requests]:
         stm = select(Requests).options(selectinload(Requests.user)).where(Requests.company_id == c_id)
         stm = await self.db.execute(stm)
         requests = stm.scalars().all()
         return requests
 
-    async def accept_request(self, r_id: int) -> None:
+    async def accept_request(self, r_id: int):
         stm = select(Requests).where(Requests.id == r_id )
         stm = await self.db.execute(stm)
         request = stm.scalars().first()
@@ -86,11 +88,11 @@ class CompanyCrud:
         await self.db.execute(stm)
         await self.db.commit()
 
-    async def decline_request(self, r_id: int) -> None:
+    async def decline_request(self, r_id: int):
         stm = delete(Requests).where(Requests.id == r_id)
         await self.db.execute(stm)
 
-    async def get_participants(self, c_id: int) -> list[User]:
+    async def get_participants(self, c_id: int) -> List[User]:
 
         # getting participants of the company
         stm = select(Participants).options(selectinload(Participants.participant)).where(Participants.company_id == c_id)
