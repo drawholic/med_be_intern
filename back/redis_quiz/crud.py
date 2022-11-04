@@ -4,6 +4,7 @@ from .pd_models import UserData
 
 EXP_HOURS = 60 * 60 * 48
 
+
 class RedisCrud:
     def __init__(self, db):
         self.db = db

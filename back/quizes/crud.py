@@ -54,7 +54,7 @@ class QuizCrud:
     async def create_question(self, quiz_id: int, question: QuestionCreate) -> None:
         answers = question.pop('answers')
 
-        stm = insert(Question).returning(Question.id).values(quiz_id=quiz_id, **question)
+        stm = insert(Question).returning(Question.id).values(quiz_id=quiz_id, **question.dict())
         stm = await self.db.execute(stm)
 
         await self.db.commit()
