@@ -31,7 +31,7 @@ async def get_token(user_auth: UserSignInPass, db: AsyncSession = Depends(get_db
 
  
 @users.get('/private', status_code=status.HTTP_202_ACCEPTED)
-async def private(token: str = Depends(token_auth), db: Session = Depends(get_db)):
+async def private(token: str = Depends(token_auth), db: Session = Depends(get_db)) -> HTTPException:
     await UserCrud(db=db).authenticate(token=token)
 
  
@@ -73,7 +73,7 @@ async def edit_user(
 async def delete_user( 
         user_id: int,
         db: AsyncSession = Depends(get_db),
-        token: str = Depends(token_auth)) -> None:
+        token: str = Depends(token_auth)) -> HTTPException:
 
     await UserCrud(db=db).authenticate(token=token)
     await UserCrud(db=db).delete_crud(uid=user_id)

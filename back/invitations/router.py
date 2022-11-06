@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from fastapi.security import HTTPBearer
 
 from db.db import get_db
@@ -22,7 +22,7 @@ async def get_invitations(token: str = Depends(token_auth), db: AsyncSession = D
 
  
 @router.post('', status_code=status.HTTP_201_CREATED)
-async def invite(c_id: int, u_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)) -> None:
+async def invite(c_id: int, u_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)) -> HTTPException:
     user_id = await UserCrud(db=db).authenticate(token=token)
     
     if user_id == u_id:
@@ -31,7 +31,7 @@ async def invite(c_id: int, u_id: int, token: str = Depends(token_auth), db: Asy
 
 
 @router.post('/accept', status_code=status.HTTP_201_CREATED)
-async def accept(inv_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)) -> None:
+async def accept(inv_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)) -> HTTPException:
 
     user_id = await UserCrud(db).authenticate(token)
  
@@ -39,7 +39,7 @@ async def accept(inv_id: int, token: str = Depends(token_auth), db: AsyncSession
 
  
 @router.delete('/decline/{i_id}', status_code=status.HTTP_204_NO_CONTENT)
-async def decline(i_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)) -> None:
+async def decline(i_id: int, token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)) -> HTTPException:
     await UserCrud(db).authenticate(token)
     await InvitationsCrud(db=db).decline_invitation(i_id=i_id) 
 
