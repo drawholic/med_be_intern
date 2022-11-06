@@ -1,5 +1,5 @@
 from db.models import Quiz, Answer, Question, Owner, Admin, Results
-from .pd_models import QuizCreate, QuestionCreate, AnswerCreate, QuizUpdate, UserAnswers
+from .pd_models import QuizCreate, QuestionCreate, AnswerCreate, QuizUpdate, UserAnswers, RedisAnswer, QuizResult
 
 from sqlalchemy import select, delete, insert, update
 from sqlalchemy.orm import selectinload
@@ -122,7 +122,7 @@ class QuizCrud:
         await self.db.execute(stm)
         await self.db.commit()
 
-    async def quiz_testing(self, user_id: int, user_answers: UserAnswers, quiz_id: int):
+    async def quiz_testing(self, user_id: int, user_answers: UserAnswers, quiz_id: int) -> QuizResult:
         quiz = await self.get_quiz(q_id=quiz_id)
         questions = await self.get_quiz_detail(q_id=quiz_id)
         questions_length = len(questions)
@@ -145,10 +145,10 @@ class QuizCrud:
 
         redis_data = await self.convert_for_redis(user_answers)
         redis_data = {'quiz_id': quiz_id, 'questions': redis_data}
+        response = QuizResult(redis_data=redis_data, result=res)
+        return response
 
-        return res, redis_data
-
-    async def get_answer(self, answer_id: int):
+    async def get_answer(self, answer_id: int) -> RedisAnswer:
         stm = select(Answer).where(Answer.id == answer_id)
         stm = await self.db.execute(stm)
         answer = stm.scalars().first()
@@ -158,7 +158,7 @@ class QuizCrud:
         }
         return answer
 
-    async def convert_for_redis(self, answers_ids: list[int]):
+    async def convert_for_redis(self, answers_ids: list[int]) -> list[RedisAnswer]:
         answers = []
         for answer_id in answers_ids:
             answers.append(await self.get_answer(answer_id))

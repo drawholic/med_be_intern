@@ -98,4 +98,9 @@ class UserAnswers(BaseModel):
 class UserResult(BaseModel):
     result: float
 
+class RedisAnswer(BaseModel):
+    question_id: int
+    answer_id: int
 
+class QuizResult(UserResult):
+    redis_data: list[RedisAnswer]
