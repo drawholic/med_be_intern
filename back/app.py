@@ -4,9 +4,9 @@ from db.db import engine
 from db.models import Base
 import aioredis
 from log import logger
+
 from redis_quiz.redis_init import get_redis
 from redis_quiz.crud import RedisCrud
-from redis_quiz.pd_models import UserData
 
 from users.router import users as users_router
 from invitations.router import router as inv_router

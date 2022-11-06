@@ -6,6 +6,10 @@ class UserAnswer(BaseModel):
     answer_id: int
 
 
-class UserData(BaseModel):
+class UserQuiz(BaseModel):
     quiz_id: int
     questions: list[UserAnswer]
+
+
+class UserData(BaseModel):
+    quizes: list[UserQuiz]

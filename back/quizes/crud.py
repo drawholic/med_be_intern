@@ -54,7 +54,7 @@ class QuizCrud:
     async def create_question(self, quiz_id: int, question: QuestionCreate) -> None:
         answers = question.pop('answers')
 
-        stm = insert(Question).returning(Question.id).values(quiz_id=quiz_id, **question.dict())
+        stm = insert(Question).returning(Question.id).values(quiz_id=quiz_id, **question)
         stm = await self.db.execute(stm)
 
         await self.db.commit()
@@ -140,9 +140,12 @@ class QuizCrud:
             if answer in correct_answers_ids:
                 res += 1
         res = round(res * 10 / questions_length, 2)
+
         await self.save_result(quiz_id=quiz.id, result=res, user_id=user_id, company_id=quiz.company_id)
+
         redis_data = await self.convert_for_redis(user_answers)
-        redis_data = {'quiz_id':quiz_id, 'questions': redis_data}
+        redis_data = {'quiz_id': quiz_id, 'questions': redis_data}
+
         return res, redis_data
 
     async def get_answer(self, answer_id: int):
