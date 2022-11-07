@@ -13,3 +13,4 @@ class UserQuiz(BaseModel):
 
 class UserData(BaseModel):
     quizes: list[UserQuiz]
+

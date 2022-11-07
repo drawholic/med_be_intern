@@ -144,8 +144,8 @@ class QuizCrud:
         await self.save_result(quiz_id=quiz.id, result=res, user_id=user_id, company_id=quiz.company_id)
 
         redis_data = await self.convert_for_redis(user_answers)
-        redis_data = {'quiz_id': quiz_id, 'questions': redis_data}
-        response = QuizResult(redis_data=redis_data, result=res)
+        redis_data = {'redis_data': redis_data}
+        response = QuizResult(**redis_data, result=res)
         return response
 
     async def get_answer(self, answer_id: int) -> RedisAnswer:
@@ -156,12 +156,13 @@ class QuizCrud:
             "question_id": answer.question_id,
             "answer_id": answer.id
         }
-        return answer
+        return RedisAnswer(**answer)
 
     async def convert_for_redis(self, answers_ids: list[int]) -> list[RedisAnswer]:
         answers = []
         for answer_id in answers_ids:
-            answers.append(await self.get_answer(answer_id))
+            answer = await self.get_answer(answer_id)
+            answers.append(answer.dict())
         return answers
 
  

@@ -2,15 +2,21 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from fastapi.security import HTTPBearer
 
 from db.db import get_db
-from .pd_models import QuizCreate, UserResult, UserAnswers, QuestionCreate, Quiz, QuestionDetail, QuizUpdate
-
+from .pd_models import (QuizCreate,
+                         UserResult,
+                         UserAnswers,
+                         QuestionCreate,
+                         Quiz,
+                         QuestionDetail,
+                         QuizUpdate
+                         )
 from .crud import QuizCrud
 from users.crud import UserCrud
 from redis_quiz.crud import RedisCrud
 from redis_quiz.redis_init import get_redis
 
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from redis_quiz.pd_models import UserQuiz
 
 router = APIRouter(prefix='/quiz', tags=['Quiz'])
 
@@ -21,8 +27,10 @@ auth_token = HTTPBearer()
 async def take_quiz(quiz_id: int, answers: UserAnswers, token: str = Depends(auth_token), db: AsyncSession = Depends(get_db), redis = Depends(get_redis)):
     user_id = await UserCrud(db=db).authenticate(token=token)
     quiz_result = await QuizCrud(db).quiz_testing(quiz_id=quiz_id, user_id=user_id, user_answers=answers)
-    await RedisCrud(redis).set_user(user_id=user_id, user_data=quiz_result.redis_data)
-    return {'result': quiz_result.result}
+    quiz_result = quiz_result.dict()
+    user_data = UserQuiz(quiz_id=quiz_id, questions=quiz_result.get('redis_data'))
+    await RedisCrud(redis).set_user(quiz_id=quiz_id, user_id=user_id, user_data=user_data)
+    return {'result': quiz_result.get('result')}
 
 
 @router.get('/retrieve/{q_id}', response_model=list[QuestionDetail])

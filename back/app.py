@@ -15,6 +15,7 @@ from participants.router import router as part_router
 from admins.router import router as admins_router
 from quizes.router import router as quiz_router
 from analytics.router import router as analytics_router
+from redis_quiz.router import router as redis_router
 
 
 async def init_models():
@@ -40,6 +41,7 @@ app.include_router(part_router)
 app.include_router(admins_router)
 app.include_router(quiz_router)
 app.include_router(analytics_router)
+app.include_router(redis_router)
 
 
 @app.on_event('startup')
