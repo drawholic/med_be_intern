@@ -2,7 +2,7 @@ from typing import Union
 import json
 from .pd_models import UserData, UserQuiz
 import csv
-
+from sqlalchemy import select
 
 from db.models import Results, Quiz
 
@@ -48,6 +48,23 @@ class RedisCrud:
             writer.writerows(answers)
             return filename
 
+    async def export_quiz_results(self, db, quiz_id: int):
+        stm = select(Results).where(Results.quiz_id == quiz_id)
+        stm = await db.execute(stm)
+        results = stm.scalars().all()
+        users_id = set([result.user_id for result in results])
+
+        users_rows = await self.iterate_users(users_id=users_id)
+        headers = ['user_id', 'quiz_id', 'question_id', 'answer_id']
+        filename = f'quiz_{quiz_id}'
+
+        with open(filename, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(headers)
+
+            writer.writerows(users_rows)
+        return filename
+
     async def export_users_results(self, results: list[Results], company_id: int):
         headers = ['user_id', 'quiz_id', 'question_id', 'answer_id']
         users_id = set([result.user_id for result in results])
@@ -72,12 +89,9 @@ class RedisCrud:
         users_rows = []
         for user in users_data:
             quizes = user.get('quizes')
-            print('quizes', quizes)
             for quiz in quizes:
-                print('quizes[quiz]', quizes[quiz])
                 questions = quizes[quiz]
                 for question in questions:
-                    print('question', question)
                     user_row = [user.get('id'),
                                     quiz,
                                     question['question_id'],
