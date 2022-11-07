@@ -20,7 +20,7 @@ from redis_quiz.router import router as redis_router
 
 async def init_models():
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+        # await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
 

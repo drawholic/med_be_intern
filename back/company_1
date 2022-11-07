@@ -1,0 +1,5 @@
+user_id,quiz_id,question_id,answer_id
+1,1,1,2
+1,1,2,4
+2,1,1,2
+2,1,1,1

@@ -23,7 +23,6 @@ class RedisCrud:
 
     async def set_user(self, quiz_id: int, user_id: int, user_data: UserQuiz):
         user = await self.get_user(user_id=user_id)
-        print(user)
         if user is None:
             user = {'quizes': {}}
         user_data = user_data.dict()
@@ -67,14 +66,24 @@ class RedisCrud:
         users_data = []
         for id in users_id:
             user = await self.get_user(user_id=id)
-            user = user.dict()
+
             user['id'] = id
-            users_data.append(user)
-        users_data = [{'id': user['id'], 'quizes': user['quizes']} for user in users_data]
-
-        users_row = []
+            users_data.append( {'id': user.get('id'), 'quizes': user.get('quizes') } )
+        users_rows = []
         for user in users_data:
-            for quiz in user['quizes']:
-                users_row.append([user.get('id'), quiz.get('id'), quiz.get('questions_id'), quiz.get('answer_id')])
+            quizes = user.get('quizes')
+            print('quizes', quizes)
+            for quiz in quizes:
+                print('quizes[quiz]', quizes[quiz])
+                questions = quizes[quiz]
+                for question in questions:
+                    print('question', question)
+                    user_row = [user.get('id'),
+                                    quiz,
+                                    question['question_id'],
+                                    question['answer_id']
+                                ]
 
-        return users_data
+                    users_rows.append(user_row)
+
+        return users_rows

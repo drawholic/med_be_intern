@@ -69,10 +69,12 @@ class CompanyCrud:
         stm = select(Owner).options(selectinload(Owner.owner)).where(Owner.company_id == c_id)
         owner = await self.db.execute(stm)
         return owner.scalars().first().owner
+
     async def is_owner(self, user_id: int, company_id: int):
         stm = select(Owner).where(and_(Owner.company_id==company_id, Owner.owner_id == user_id))
         stm = await self.db.execute(stm)
-        return bool(stm.scalars.first())
+        return bool(stm.scalars().first())
+
     async def get_requests(self, c_id: int) -> List[Requests]:
         stm = select(Requests).options(selectinload(Requests.user)).where(Requests.company_id == c_id)
         stm = await self.db.execute(stm)
