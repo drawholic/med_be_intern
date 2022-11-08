@@ -8,6 +8,17 @@ services:
     ports:
       - "6379:6379"
 
+  test_db:
+    image: postgres
+    volumes:
+        - ./test_database-/var/lib/postgresql/data
+    ports:
+      - "5433:5433"
+    environment:
+      - POSTGRES_USER=${PG_USER_TEST}
+      - POSTGRES_PASSWORD=${PG_PASS_TEST}
+      - POSTGRES_DB=${PG_DB_TEST}
+
   db:
     image: postgres 
     volumes:
@@ -29,4 +40,5 @@ services:
     depends_on:
       - db
       - cache
+      - test_db
     command: uvicorn app:app --host ${BACK_HOST} --port ${BACK_PORT} --reload        
