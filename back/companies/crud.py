@@ -1,7 +1,8 @@
-from db.models import Company, User, Owner, Invitations, Participants, Admin, Requests
-from sqlalchemy import insert, select, update, join, delete
+from db.models import Company, User, Owner, Invitations, Participants, Admin, Requests, Results
+from sqlalchemy import insert, select, update, join, delete, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+
 
 from .pd_models import CompanyUpdate
 from .exceptions import CompanyDoesNotExistException, CompanyAlreadyExists
@@ -39,9 +40,7 @@ class CompanyCrud:
         if c is None:
             raise CompanyDoesNotExistException
 
-        return c
-
-    async def company_title_exists(self, title: str) -> bool:
+    async def company_title_exists(self, title: str) -> bool: 
         stm = await self.db.execute(select(Company).where(Company.title==title)) 
         company = stm.scalars().first()
         return bool(company)
@@ -70,6 +69,16 @@ class CompanyCrud:
         stm = select(Owner).options(selectinload(Owner.owner)).where(Owner.company_id == c_id)
         owner = await self.db.execute(stm)
         return owner.scalars().first().owner
+
+    async def is_owner(self, user_id: int, company_id: int) -> bool:
+        stm = select(Owner).where(and_(Owner.company_id==company_id, Owner.owner_id == user_id))
+        stm = await self.db.execute(stm)
+        return bool(stm.scalars().first())
+
+    async def is_admin(self, user_id: int, company_id: int) -> bool:
+        stm = select(Admin).where(and_(Admin.user_id==user_id, Admin.company_id == company_id))
+        stm = await self.db.execute(stm)
+        return bool(stm.scalars().first())
 
     async def get_requests(self, c_id: int) -> List[Requests]:
         stm = select(Requests).options(selectinload(Requests.user)).where(Requests.company_id == c_id)
@@ -102,3 +111,12 @@ class CompanyCrud:
         # returning just users
         return participants.participant
 
+    async def get_users_results(self, company_id: int) -> list[Results]:
+        stm = select(Results).where(Results.company_id == company_id)
+        stm = await self.db.execute(stm)
+        return stm.scalars().all()
+
+    async def get_quiz_results(self, quiz_id: int) -> list[Results]:
+        stm = select(Results).where(Results.quiz_id == quiz_id)
+        stm = await self.db.execute(stm)
+        return stm.scalars().all()

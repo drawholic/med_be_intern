@@ -7,7 +7,7 @@ from .exceptions import (
 import os
 from .utils import encode_password, check_password
 from log import logger
-from .pd_models import UserSignUp, UserUpgrade, UserSignInPass 
+from .pd_models import UserSignUp, UserUpgrade, UserSignInPass, User as UserPD
 from sqlalchemy import select, update, delete, insert
 from .auth import AuthToken, token_decode
 
@@ -66,15 +66,16 @@ class UserCrud:
         user = user.scalars().first()
         return bool(user)
 
-    async def create_user(self, user: UserSignUp) -> User:
+    async def create_user(self, user: UserSignUp) -> UserPD:
         if await self.check_user_email(email=user.email):
             raise UserAlreadyExists
         else: 
             password = encode_password(password=user.password1)
-            stm = insert(User).returning(User).values(password=password, email=user.email)
-            result = await self.db.execute(stm)
+            stm = insert(User).values(password=password, email=user.email)
+            await self.db.execute(stm)
             logger.info(f'user {user.email} is created')
-            return result
+            user = await self.get_user_by_email(email=user.email)
+            return user
 
     async def update_user(self, uid: int, user_data: UserUpgrade) -> User:
        

@@ -1,5 +1,5 @@
-from db.models import Quiz, Answer, Question, Owner, Admin
-from .pd_models import QuizCreate, QuestionCreate, AnswerCreate, QuizUpdate
+from db.models import Quiz, Answer, Question, Owner, Admin, Results
+from .pd_models import QuizCreate, QuestionCreate, AnswerCreate, QuizUpdate, UserAnswers, RedisAnswer, QuizResult
 
 from sqlalchemy import select, delete, insert, update
 from sqlalchemy.orm import selectinload
@@ -11,8 +11,8 @@ class QuizCrud:
 
     def __init__(self, db):
         self.db = db
-
-    async def get_quiz_detail(self, q_id: int) -> Question:
+ 
+    async def get_quiz_detail(self, q_id: int) -> list[Question]: 
 
         stm = select(Question).options(selectinload(Question.answers)).where(Question.quiz_id == q_id)
         stm = await self.db.execute(stm)
@@ -111,3 +111,58 @@ class QuizCrud:
         stm = delete(Answer).where(Answer.question_id == question_id)
         await self.db.execute(stm)
         await self.db.commit()
+        
+    async def get_answers(self, question_id: int) -> list[Answer]:
+        stm = select(Answer).where(Answer.question_id == question_id)
+        stm = await self.db.execute(stm)
+        return stm.scalars().all()
+
+    async def save_result(self, quiz_id: int, result: float, company_id: int, user_id: int):
+        stm = insert(Results).values(quiz_id=quiz_id, result=result, company_id=company_id, user_id=user_id)
+        await self.db.execute(stm)
+        await self.db.commit()
+
+    async def quiz_testing(self, user_id: int, user_answers: UserAnswers, quiz_id: int) -> QuizResult:
+        quiz = await self.get_quiz(q_id=quiz_id)
+        questions = await self.get_quiz_detail(q_id=quiz_id)
+        questions_length = len(questions)
+        res = 0
+        answers = []
+
+        for question in questions:
+            answers += question.answers.copy()
+
+        correct_answers = list(filter(lambda answer: answer.correct, answers))
+        correct_answers_ids = [answer.id for answer in correct_answers]
+
+        user_answers = [answer.answer_id for answer in user_answers.answers]
+        for answer in user_answers:
+            if answer in correct_answers_ids:
+                res += 1
+        res = round(res * 10 / questions_length, 2)
+
+        await self.save_result(quiz_id=quiz.id, result=res, user_id=user_id, company_id=quiz.company_id)
+
+        redis_data = await self.convert_for_redis(user_answers)
+        redis_data = {'redis_data': redis_data}
+        response = QuizResult(**redis_data, result=res)
+        return response
+
+    async def get_answer(self, answer_id: int) -> RedisAnswer:
+        stm = select(Answer).where(Answer.id == answer_id)
+        stm = await self.db.execute(stm)
+        answer = stm.scalars().first()
+        answer = {
+            "question_id": answer.question_id,
+            "answer_id": answer.id
+        }
+        return RedisAnswer(**answer)
+
+    async def convert_for_redis(self, answers_ids: list[int]) -> list[RedisAnswer]:
+        answers = []
+        for answer_id in answers_ids:
+            answer = await self.get_answer(answer_id)
+            answers.append(answer.dict())
+        return answers
+
+ 

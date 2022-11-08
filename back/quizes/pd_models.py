@@ -88,3 +88,19 @@ class QuizDetail(Quiz):
     class Config:
         orm_mode = True
 
+
+class UserAnswer(BaseModel):
+    answer_id: int
+
+class UserAnswers(BaseModel):
+    answers: list[UserAnswer]
+
+class UserResult(BaseModel):
+    result: float
+
+class RedisAnswer(BaseModel):
+    question_id: int
+    answer_id: int
+
+class QuizResult(UserResult):
+    redis_data: list[RedisAnswer]
