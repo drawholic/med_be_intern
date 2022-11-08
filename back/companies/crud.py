@@ -111,12 +111,12 @@ class CompanyCrud:
         # returning just users
         return participants.participant
 
-    async def get_users_results(self, company_id: int) -> list[Results]:
+    async def get_users_results(self, company_id: int) -> List[Results]:
         stm = select(Results).where(Results.company_id == company_id)
         stm = await self.db.execute(stm)
         return stm.scalars().all()
 
-    async def get_quiz_results(self, quiz_id: int) -> list[Results]:
+    async def get_quiz_results(self, quiz_id: int) -> List[Results]:
         stm = select(Results).where(Results.quiz_id == quiz_id)
         stm = await self.db.execute(stm)
         return stm.scalars().all()

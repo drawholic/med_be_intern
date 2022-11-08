@@ -2,7 +2,6 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
-import databases
 from dotenv import load_dotenv
 import os
 
@@ -18,7 +17,6 @@ DB_HOST = os.getenv('PG_HOST')
 DB_URL = f'postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_DB}'
    
 
-database = databases.Database(DB_URL)
 
 engine = create_async_engine(DB_URL, echo=True)
  

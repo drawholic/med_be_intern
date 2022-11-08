@@ -1,10 +1,10 @@
 from typing import Union
 import json
-from .pd_models import UserData, UserQuiz
+from .pd_models import UserData, UserQuiz, UserRedisRow
 import csv
 from sqlalchemy import select
 
-from db.models import Results, Quiz, UserRedisRow
+from db.models import Results, Quiz
 
 
 EXP_HOURS = 60 * 60 * 48
