@@ -70,12 +70,12 @@ class CompanyCrud:
         owner = await self.db.execute(stm)
         return owner.scalars().first().owner
 
-    async def is_owner(self, user_id: int, company_id: int):
+    async def is_owner(self, user_id: int, company_id: int) -> bool:
         stm = select(Owner).where(and_(Owner.company_id==company_id, Owner.owner_id == user_id))
         stm = await self.db.execute(stm)
         return bool(stm.scalars().first())
 
-    async def is_admin(self, user_id: int, company_id: int):
+    async def is_admin(self, user_id: int, company_id: int) -> bool:
         stm = select(Admin).where(and_(Admin.user_id==user_id, Admin.company_id == company_id))
         stm = await self.db.execute(stm)
         return bool(stm.scalars().first())
@@ -111,12 +111,12 @@ class CompanyCrud:
         # returning just users
         return participants.participant
 
-    async def get_users_results(self, company_id: int):
+    async def get_users_results(self, company_id: int) -> list[Results]:
         stm = select(Results).where(Results.company_id == company_id)
         stm = await self.db.execute(stm)
         return stm.scalars().all()
 
-    async def get_quiz_results(self, quiz_id: int):
+    async def get_quiz_results(self, quiz_id: int) -> list[Results]:
         stm = select(Results).where(Results.quiz_id == quiz_id)
         stm = await self.db.execute(stm)
         return stm.scalars().all()

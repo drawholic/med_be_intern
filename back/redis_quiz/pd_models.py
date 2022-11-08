@@ -14,3 +14,8 @@ class UserQuiz(BaseModel):
 class UserData(BaseModel):
     quizes: list[UserQuiz]
 
+class UserRedisRow(BaseModel):
+    id: int
+    quiz_id: int
+    question_id: int
+    answer_id: int

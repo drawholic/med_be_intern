@@ -4,7 +4,7 @@ from .pd_models import UserData, UserQuiz
 import csv
 from sqlalchemy import select
 
-from db.models import Results, Quiz
+from db.models import Results, Quiz, UserRedisRow
 
 
 EXP_HOURS = 60 * 60 * 48
@@ -79,7 +79,7 @@ class RedisCrud:
             writer.writerows(users_rows)
         return filename
 
-    async def iterate_users(self, users_id: set[int]):
+    async def iterate_users(self, users_id: set[int]) -> list[UserRedisRow]:
         users_data = []
         for id in users_id:
             user = await self.get_user(user_id=id)
