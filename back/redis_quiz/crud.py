@@ -30,7 +30,7 @@ class RedisCrud:
         data = json.dumps(user)
         await self.db.set(user_id, data, EXP_HOURS)
 
-    async def export_user_results(self, user_id: int):
+    async def export_user_results(self, user_id: int) -> str:
         result = await self.get_user(user_id=user_id)
         if result is None:
             return None
@@ -48,7 +48,7 @@ class RedisCrud:
             writer.writerows(answers)
             return filename
 
-    async def export_quiz_results(self, db, quiz_id: int):
+    async def export_quiz_results(self, db, quiz_id: int) -> str:
         stm = select(Results).where(Results.quiz_id == quiz_id)
         stm = await db.execute(stm)
         results = stm.scalars().all()
@@ -65,7 +65,7 @@ class RedisCrud:
             writer.writerows(users_rows)
         return filename
 
-    async def export_users_results(self, results: list[Results], company_id: int):
+    async def export_users_results(self, results: list[Results], company_id: int) -> str:
         headers = ['user_id', 'quiz_id', 'question_id', 'answer_id']
         users_id = set([result.user_id for result in results])
         filename = f'company_{company_id}'
