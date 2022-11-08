@@ -4,7 +4,7 @@ from .pd_models import UserData, UserQuiz
 import csv
 
 
-from db.models import Results, Quiz
+from db.models import Results, Quiz, UserRedisRow
 
 
 EXP_HOURS = 60 * 60 * 48
@@ -30,7 +30,7 @@ class RedisCrud:
         data = json.dumps(user)
         await self.db.set(user_id, data, EXP_HOURS)
 
-    async def export_user_results(self, user_id: int):
+    async def export_user_results(self, user_id: int) -> str:
         result = await self.get_user(user_id=user_id)
         if result is None:
             return None
@@ -48,7 +48,7 @@ class RedisCrud:
             writer.writerows(answers)
             return filename
 
-    async def export_users_results(self, results: list[Results], company_id: int):
+    async def export_users_results(self, results: list[Results], company_id: int)  -> str:
         headers = ['user_id', 'quiz_id', 'question_id', 'answer_id']
         users_id = set([result.user_id for result in results])
         filename = f'company_{company_id}'
@@ -62,22 +62,20 @@ class RedisCrud:
             writer.writerows(users_rows)
         return filename
 
-    async def iterate_users(self, users_id: set[int]):
+    async def iterate_users(self, users_id: set[int]) -> list[UserRedisRow]:
         users_data = []
         for id in users_id:
             user = await self.get_user(user_id=id)
 
             user['id'] = id
             users_data.append( {'id': user.get('id'), 'quizes': user.get('quizes') } )
+
         users_rows = []
         for user in users_data:
             quizes = user.get('quizes')
-            print('quizes', quizes)
             for quiz in quizes:
-                print('quizes[quiz]', quizes[quiz])
                 questions = quizes[quiz]
                 for question in questions:
-                    print('question', question)
                     user_row = [user.get('id'),
                                     quiz,
                                     question['question_id'],
