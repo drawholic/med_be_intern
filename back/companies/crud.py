@@ -106,7 +106,7 @@ class CompanyCrud:
         # returning just users
         return participants.participant
 
-    async def get_users_results(self, company_id: int):
+    async def get_users_results(self, company_id: int) -> List[Results]:
         stm = select(Results).where(Results.company_id == company_id)
         stm = await self.db.execute(stm)
         return stm.scalars().all()
