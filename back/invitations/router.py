@@ -3,6 +3,7 @@ from fastapi.security import HTTPBearer
 
 from db.db import get_db
 
+from typing import List, Union
 from sqlalchemy.ext.asyncio import AsyncSession
 from users.crud import UserCrud
 from .crud import InvitationsCrud
@@ -14,7 +15,7 @@ router = APIRouter(prefix='/invitations', tags=['Invitations'])
 token_auth = HTTPBearer()
 
  
-@router.get('', response_model=list[Invitation]) 
+@router.get('', response_model=List[Invitation])
 async def get_invitations(token: str = Depends(token_auth), db: AsyncSession = Depends(get_db)):
     user_id = await UserCrud(db=db).authenticate(token=token)
     invitations = await InvitationsCrud(db=db).get_invitations(u_id=user_id)

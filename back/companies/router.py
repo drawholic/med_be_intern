@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer
 from fastapi.responses import JSONResponse
-
+from typing import List
 from .pd_models import CompanyCreate, Company, CompanyUpdate, UserCompany, Request
 from db.db import get_db
 
@@ -22,15 +22,15 @@ async def create_company(company: CompanyCreate, token: str = Depends(token_auth
     return await CompanyCrud(db=db).create(user_id=user, company=company)
 
 
-@router.get('' , response_model=list[Company])
-async def list_companies(db: AsyncSession = Depends(get_db)) -> list[Company]:
+@router.get('' , response_model=List[Company])
+async def list_companies(db: AsyncSession = Depends(get_db)) -> List[Company]:
     return await CompanyCrud(db=db).list()
 
 
-@router.get('/requests/list/{c_id}', response_model=list[Request])
+@router.get('/requests/list/{c_id}', response_model=List[Request])
 async def get_requests(company_id: int,
                        token: str = Depends(token_auth),
-                       db: AsyncSession = Depends(get_db)) -> list[Request]:
+                       db: AsyncSession = Depends(get_db)) -> List[Request]:
     await UserCrud(db=db).authenticate(token=token)
     return await CompanyCrud(db=db).get_requests(c_id=company_id)
 

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-
+from typing import List
 
 class UserAnswer(BaseModel):
     question_id: int
@@ -8,11 +8,12 @@ class UserAnswer(BaseModel):
 
 class UserQuiz(BaseModel):
     quiz_id: int
-    questions: list[UserAnswer]
+    questions: List[UserAnswer]
 
 
 class UserData(BaseModel):
-    quizes: list[UserQuiz]
+    quizes: List[UserQuiz]
+
 
 class UserRedisRow(BaseModel):
     id: int

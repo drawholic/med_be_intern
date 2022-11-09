@@ -3,16 +3,17 @@ from fastapi.security import HTTPBearer
 from users.crud import UserCrud
 from .crud import AdminCrud
 from db.db import get_db
+from typing import List
 
 from .pd_models import Admin
 from sqlalchemy.ext.asyncio import AsyncSession
 
-router  = APIRouter(prefix='/admins', tags=['Admin'])
+router = APIRouter(prefix='/admins', tags=['Admin'])
 
 token_auth = HTTPBearer()
 
 
-@router.get('', response_model=list[Admin])
+@router.get('', response_model=List[Admin])
 async def get_admins(company_id: int,
                      db: AsyncSession = Depends(get_db)):
     return await AdminCrud(db=db).get_admins(c_id=company_id)

@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Response,  Depends, HTTPException, status
 from fastapi.security import HTTPBearer
 
-from db.models import User 
+from db.models import User
 from db.db import get_db
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from typing import List
 from .crud import UserCrud
 
 from .pd_models import User as UserPD, UserSignUp, UserUpgrade, UserSignInPass
@@ -35,7 +36,7 @@ async def private(token: str = Depends(token_auth), db: Session = Depends(get_db
     await UserCrud(db=db).authenticate(token=token)
 
  
-@users.get('/', response_model=list[UserPD])
+@users.get('/', response_model=List[UserPD])
 async def list_users(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     return await UserCrud(db).get_users(skip=skip, limit=limit)
 

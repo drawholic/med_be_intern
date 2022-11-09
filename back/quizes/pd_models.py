@@ -1,7 +1,7 @@
 from pydantic import BaseModel, validator
 from datetime import datetime
 from .exceptions import AnswersQuantityException,CorrectAnswersQuantityException, QuestionsQuantityException
-
+from typing import List, Union
 
 class AnswerBase(BaseModel):
     text: str
@@ -10,20 +10,22 @@ class AnswerBase(BaseModel):
 class AnswerCreate(AnswerBase):
     pass
 
+
 class Answer(AnswerBase):
     id: int
     question_id: int
     created_at: datetime
-    updated_at: datetime | None
+    updated_at: Union[datetime, None]
 
     class Config:
         orm_mode = True
+
 
 class QuestionBase(BaseModel):
     text: str
 
 class QuestionCreate(QuestionBase):
-    answers: list[AnswerCreate]
+    answers: List[AnswerCreate]
 
     @validator('answers')
     def answers_quantity(cls, v, values):
@@ -45,13 +47,13 @@ class Question(QuestionBase):
     quiz_id: int
     id: int
     created_at: datetime
-    updated_at: datetime | None
+    updated_at: Union[datetime, None]
 
     class Config:
         orm_mode = True
 
 class QuestionDetail(Question):
-    answers: list[Answer]
+    answers: List[Answer]
 
 
 class QuizBase(BaseModel):
@@ -61,12 +63,12 @@ class QuizBase(BaseModel):
     frequency: int
 
 class QuizUpdate(BaseModel):
-    title: str | None = None
-    description: str | None = None
-    frequency: int | None = None
+    title: Union[str, None] = None
+    description: Union[str, None] = None
+    frequency: Union[int, None] = None
 
 class QuizCreate(QuizBase):
-    questions: list[QuestionCreate]
+    questions: List[QuestionCreate]
 
     @validator('questions')
     def questions_quantity(cls, v, values):
@@ -77,13 +79,13 @@ class QuizCreate(QuizBase):
 class Quiz(QuizBase):
     id: int
     created_at: datetime
-    updated_at: datetime | None
+    updated_at: Union[datetime, None]
 
     class Config:
         orm_mode = True
 
 class QuizDetail(Quiz):
-    questions: list[Question] | None = []
+    questions: Union[List[Question], None] = []
 
     class Config:
         orm_mode = True
@@ -92,15 +94,19 @@ class QuizDetail(Quiz):
 class UserAnswer(BaseModel):
     answer_id: int
 
+
 class UserAnswers(BaseModel):
-    answers: list[UserAnswer]
+    answers: List[UserAnswer]
+
 
 class UserResult(BaseModel):
     result: float
+
 
 class RedisAnswer(BaseModel):
     question_id: int
     answer_id: int
 
+
 class QuizResult(UserResult):
-    redis_data: list[RedisAnswer]
+    redis_data: List[RedisAnswer]

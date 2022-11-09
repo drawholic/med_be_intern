@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, status, HTTPException
 from fastapi.security import HTTPBearer
-
+from typing import List
 from db.db import get_db
 from .pd_models import (QuizCreate,
                          UserResult,
@@ -33,7 +33,7 @@ async def take_quiz(quiz_id: int, answers: UserAnswers, token: str = Depends(aut
     return {'result': quiz_result.get('result')}
 
 
-@router.get('/retrieve/{q_id}', response_model=list[QuestionDetail])
+@router.get('/retrieve/{q_id}', response_model=List[QuestionDetail])
 async def get_quiz(q_id: int, db: AsyncSession = Depends(get_db)):
     return await QuizCrud(db).get_quiz_detail(q_id=q_id)
 
@@ -47,7 +47,7 @@ async def update_quiz(quiz_id: int,
     await QuizCrud(db).update_quiz(user_id=user_id, quiz_update=quiz_update, quiz_id=quiz_id)
 
 
-@router.get('/list/{company_id}', response_model=list[Quiz])
+@router.get('/list/{company_id}', response_model=List[Quiz])
 async def get_quizes(company_id: int, skip: int, limit: int, db: AsyncSession = Depends(get_db)):
     return await QuizCrud(db).get_quizes(c_id=company_id, skip=skip, limit=limit)
 

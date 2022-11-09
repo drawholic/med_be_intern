@@ -1,4 +1,4 @@
-from db.models import Company, User, Owner, Invitations, Participants, Admin, Requests, Results
+from db.models import Company, User, Owner,  Participants, Admin, Requests, Results
 from sqlalchemy import insert, select, update, join, delete, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -6,7 +6,7 @@ from sqlalchemy.orm import selectinload
 
 from .pd_models import CompanyUpdate
 from .exceptions import CompanyDoesNotExistException, CompanyAlreadyExists
-from typing import List
+from typing import List, Union
 
 
 class CompanyCrud:

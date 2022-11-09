@@ -1,6 +1,6 @@
 from fastapi import Depends, APIRouter
 from fastapi.security import HTTPBearer
-
+from typing import List
 from db.db import get_db
 from .crud import AnalyticsCrud
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -42,14 +42,14 @@ async def get_user_latest_quiz(user_id: int, quiz_id: int, db: AsyncSession = De
     return await AnalyticsCrud(db).get_user_last_quiz(user_id=user_id, quiz_id=quiz_id)
 
 
-@router.get('/users_mean/{company_id}', response_model=list[UsersCompanyMean])
+@router.get('/users_mean/{company_id}', response_model=List[UsersCompanyMean])
 async def company_users_quizes_mean(company_id: int, token: str = Depends(auth_token), db: AsyncSession = Depends(get_db)):
     user_id = await UserCrud(db).authenticate(token = token)
     if await CompanyCrud(db).is_owner(user_id=user_id, company_id=company_id) or await CompanyCrud(db).is_admin(user_id=user_id, company_id=company_id):
         return AnalyticsCrud(db).company_users_mean(company_id=company_id)
 
 
-@router.get('/company/{company_id}/users/{user_id}', response_model=list[UsersCompanyMean])
+@router.get('/company/{company_id}/users/{user_id}', response_model=List[UsersCompanyMean])
 async def company_user_quizes_mean(company_id:int,
                                    user_id:int,
                                    token: str = Depends(auth_token),
@@ -59,7 +59,7 @@ async def company_user_quizes_mean(company_id:int,
         return AnalyticsCrud(db).company_user_mean(company_id=company_id, user_id=user_id)
 
 
-@router.get('/company/{company_id}/users/latest', response_model=list[UsersLatestQuiz])
+@router.get('/company/{company_id}/users/latest', response_model=List[UsersLatestQuiz])
 async def company_users_latest_quiz(company_id: int,
                                     token: str = Depends(auth_token),
                                     db: AsyncSession = Depends(get_db)):
@@ -76,14 +76,14 @@ async def user_quizes_mean(user_id:int,
     return AnalyticsCrud(db).user_general_mean(user_id=user_id)
 
 
-@router.get('/users/mean_list', response_model = list[UserQuizMean])
+@router.get('/users/mean_list', response_model = List[UserQuizMean])
 async def user_mean_list(token: str = Depends(auth_token),
                          db: AsyncSession = Depends(get_db)):
     curr_user = await UserCrud(db).authenticate(token)
     return await AnalyticsCrud(db).user_mean_list(user_id=curr_user)
 
 
-@router.get('/users/latest_quizes', response_model=list[QuizLatest])
+@router.get('/users/latest_quizes', response_model=List[QuizLatest])
 async def user_quizes_latest(token: str = Depends(auth_token),
                              db: AsyncSession = Depends(get_db)):
     curr_user = await UserCrud(db).authenticate(token=token)

@@ -1,7 +1,7 @@
 from db.models import Participants, Requests, Company, User
 from sqlalchemy import select, insert, delete
 from sqlalchemy.orm import selectinload
-
+from typing import Union, List
 
 class ParticipantsCrud:
     def __init__(self, db):
@@ -12,13 +12,13 @@ class ParticipantsCrud:
         await self.db.execute(stm)
         await self.db.commit()
  
-    async def company_participants(self, c_id: int) -> list[Participants]: 
+    async def company_participants(self, c_id: int) -> List[Participants]:
         stm = select(Participants).options(selectinload(Participants.participant)).where(Participants.company_id == c_id)
         users = await self.db.execute(stm)
         users = users.scalars().all()
         return users
  
-    async def users_companies(self, u_id: int) -> list[Participants]: 
+    async def users_companies(self, u_id: int) -> List[Participants]:
         stm = select(Participants).options(selectinload(Participants.company)).where(Participants.participant_id == u_id)
         companies = await self.db.execute(stm)
         companies = companies.scalars().all()

@@ -15,7 +15,7 @@ from fastapi import HTTPException
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from typing import Callable
+from typing import List
 import dotenv
 
 dotenv.load_dotenv('.env')
@@ -112,7 +112,7 @@ class UserCrud:
         logger.info(f'user {user.username} was deleted')
         return user
 
-    async def get_users(self, skip: int, limit: int) -> list[User]:
+    async def get_users(self, skip: int, limit: int) -> List[User]:
         users = await self.db.execute(select(User).offset(skip).limit(limit))
         users = users.scalars().all()
 

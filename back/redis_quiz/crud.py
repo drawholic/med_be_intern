@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, List, Set
 import json
 from .pd_models import UserData, UserQuiz, UserRedisRow
 import csv
@@ -65,7 +65,7 @@ class RedisCrud:
             writer.writerows(users_rows)
         return filename
 
-    async def export_users_results(self, results: list[Results], company_id: int) -> str:
+    async def export_users_results(self, results: List[Results], company_id: int) -> str:
         headers = ['user_id', 'quiz_id', 'question_id', 'answer_id']
         users_id = set([result.user_id for result in results])
         filename = f'company_{company_id}'
@@ -79,7 +79,7 @@ class RedisCrud:
             writer.writerows(users_rows)
         return filename
 
-    async def iterate_users(self, users_id: set[int]) -> list[UserRedisRow]:
+    async def iterate_users(self, users_id: Set[int]) -> List[UserRedisRow]:
         users_data = []
         for id in users_id:
             user = await self.get_user(user_id=id)

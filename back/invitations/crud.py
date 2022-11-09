@@ -1,6 +1,7 @@
 from sqlalchemy.orm import selectinload
 from sqlalchemy import insert, select, update, join, delete
 
+from typing import Union, List
 from db.models import User, Invitations, Participants, Owner
 from .exceptions import AlreadyInvitedException, AuthenticationException
 from companies.crud import CompanyCrud
@@ -17,7 +18,7 @@ class InvitationsCrud:
         inv = inv.scalars().first()
         return inv
 
-    async def get_invitations(self, u_id: int) -> list[Invitations]:
+    async def get_invitations(self, u_id: int) -> List[Invitations]:
         # crud func  to get all invitations
         stm = select(Invitations).options(selectinload(Invitations.company)).where(Invitations.user_id == u_id)
 

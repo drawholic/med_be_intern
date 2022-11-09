@@ -1,7 +1,7 @@
 from sqlalchemy import select, insert, delete
 from db.models import Admin
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from typing import List
 from sqlalchemy.orm import selectinload
 
 
@@ -9,7 +9,7 @@ class AdminCrud:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_admins(self, c_id: int) -> list[Admin]:
+    async def get_admins(self, c_id: int) -> List[Admin]:
         stm = select(Admin).options(selectinload(Admin.user)).where(Admin.company_id == c_id)
         companies = await self.db.execute(stm)
         companies = companies.scalars().all()

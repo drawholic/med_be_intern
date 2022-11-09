@@ -5,14 +5,14 @@ from sqlalchemy import select, delete, insert, update
 from sqlalchemy.orm import selectinload
 
 from .exceptions import AuthorizationException
-
+from typing import List
 
 class QuizCrud:
 
     def __init__(self, db):
         self.db = db
  
-    async def get_quiz_detail(self, q_id: int) -> list[Question]: 
+    async def get_quiz_detail(self, q_id: int) -> List[Question]:
 
         stm = select(Question).options(selectinload(Question.answers)).where(Question.quiz_id == q_id)
         stm = await self.db.execute(stm)
@@ -24,7 +24,7 @@ class QuizCrud:
         stm = await self.db.execute(stm)
         return stm.scalars().first()
 
-    async def get_quizes(self, c_id: int, skip:int, limit: int) -> list[Quiz]:
+    async def get_quizes(self, c_id: int, skip:int, limit: int) -> List[Quiz]:
         stm = select(Quiz).options(selectinload(Quiz.questions)).where(Quiz.company_id == c_id).offset(skip).limit(limit)
         stm = await self.db.execute(stm)
         quizes = stm.scalars().all()
@@ -112,7 +112,7 @@ class QuizCrud:
         await self.db.execute(stm)
         await self.db.commit()
         
-    async def get_answers(self, question_id: int) -> list[Answer]:
+    async def get_answers(self, question_id: int) -> List[Answer]:
         stm = select(Answer).where(Answer.question_id == question_id)
         stm = await self.db.execute(stm)
         return stm.scalars().all()
@@ -158,7 +158,7 @@ class QuizCrud:
         }
         return RedisAnswer(**answer)
 
-    async def convert_for_redis(self, answers_ids: list[int]) -> list[RedisAnswer]:
+    async def convert_for_redis(self, answers_ids: List[int]) -> List[RedisAnswer]:
         answers = []
         for answer_id in answers_ids:
             answer = await self.get_answer(answer_id)

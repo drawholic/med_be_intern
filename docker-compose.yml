@@ -13,7 +13,7 @@ services:
     volumes:
         - ./test_database-/var/lib/postgresql/data
     ports:
-      - "5433:5433"
+      - "5433:5432"
     environment:
       - POSTGRES_USER=${PG_USER_TEST}
       - POSTGRES_PASSWORD=${PG_PASS_TEST}

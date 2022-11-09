@@ -1,5 +1,5 @@
 from db.models import Results
-
+from typing import List
 import statistics
 from sqlalchemy import select, insert, and_, desc
 from .pd_models import (
@@ -51,17 +51,17 @@ class AnalyticsCrud:
         response = UserLatestQuizResult(**result)
         return response
 
-    async def company_users_mean(self, company_id: int) -> list[UsersCompanyMean]:
+    async def company_users_mean(self, company_id: int) -> List[UsersCompanyMean]:
         stm = select(Results).where(Results.company_id == company_id)
         stm = await self.db.execute(stm)
         return stm.scalars.all()
 
-    async def company_user_mean(self, user_id: int, company_id: int) -> list[UsersCompanyMean]:
+    async def company_user_mean(self, user_id: int, company_id: int) -> List[UsersCompanyMean]:
         stm = select(Results).where(and_(Results.company_id==company_id, Results.user_id==user_id))
         stm = await self.db.execute(stm)
         return stm.scalars().all()
 
-    async def users_latest_quiz(self, company_id: int) -> list[UsersLatestQuiz]:
+    async def users_latest_quiz(self, company_id: int) -> List[UsersLatestQuiz]:
         stm = select(Results).where(Results.company_id == company_id)
         stm = await self.db.execute(stm)
         results = stm.scalars().all()
@@ -90,7 +90,7 @@ class AnalyticsCrud:
         response = {'user_id': user_id, 'mean_results': mean}
         return response
 
-    async def user_mean_list(self, user_id: int) -> list[UserQuizMean]:
+    async def user_mean_list(self, user_id: int) -> List[UserQuizMean]:
         stm = select(Results).where(Results.user_id == user_id)
         stm = await self.db.execute(stm)
         results = stm.scalars().all()
@@ -113,7 +113,7 @@ class AnalyticsCrud:
         mean = statistics.mean(results)
         return mean
 
-    async def user_quizes_latest(self, user_id:int) -> list[QuizLatest]:
+    async def user_quizes_latest(self, user_id:int) -> List[QuizLatest]:
         stm = select(Results).where(Results.user_id == user_id)
         stm = await self.db.execute(stm)
         results = stm.scalars().all()
