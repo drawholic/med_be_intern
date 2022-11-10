@@ -26,3 +26,8 @@ class UserRedisRow(BaseModel):
     question_id: int
     answer_id: int
 
+class UserRedisRow(BaseModel):
+    id: int
+    quiz_id: int
+    question_id: int
+    answer_id: int
